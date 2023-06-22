@@ -2,6 +2,15 @@ from pydantic import BaseModel, Field
 import datetime
 
 
+class Token(BaseModel):
+	access_token: str
+	token_type: str
+
+
+class TokenData(BaseModel):
+	email: str | None = None
+
+
 class NoteBase(BaseModel):
 	text: str = Field(
 		max_length=1000,
@@ -66,6 +75,12 @@ class UserCreate(UserBase):
 class User(UserBase):
 	id: int = Field(ge=1)
 	notes: list[Note] = []
+	tasks: list[Task] = []
 
 	class Config:
 		orm_mode = True
+
+
+class UserInDB(User):
+	hashed_password: str
+

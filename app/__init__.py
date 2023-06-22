@@ -7,7 +7,7 @@ import os
 
 def logger_init() -> None:
 	"""
-	Использую loguru для дополнительного логирования
+	Использую loguru для дополнительного логирования.
 	"""
 	for level in config.LOGGING_LEVELS:
 		logger.add(
@@ -21,7 +21,7 @@ def logger_init() -> None:
 
 def database_init() -> None:
 	"""
-	Создание таблиц в БД по умолчанию
+	Создание таблиц в БД по умолчанию.
 	"""
 	with sync_db.cursor() as cursor:
 		cursor.execute(GET_ALL_TABLES)
@@ -36,6 +36,6 @@ def database_init() -> None:
 
 def start_app() -> None:
 	"""
-	Запуск сервера
+	Запуск сервера.
 	"""
 	os.system(config.STARTING_APP_CMD)
