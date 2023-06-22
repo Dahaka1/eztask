@@ -9,6 +9,9 @@ DB_PARAMS = {"user": os.environ.get("DB_USER"), "password": os.environ.get("DB_P
 DATABASE_URL = "postgresql://%s:%s@%s:%s/%s" % tuple(DB_PARAMS.values())
 
 
+API_DOCS_URL = "/api/v1/docs"
+OPENAPI_URL = "/api/v1/openapi.json"
+
 # loguru logger settings
 LOGGING_FORMAT = '{time} {level} {message}'
 ERRORS_OUTPUT_FILE = 'logs.log'

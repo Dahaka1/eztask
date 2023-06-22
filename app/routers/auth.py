@@ -6,6 +6,7 @@ from ..models.users import User
 from ..database import db
 from ..exceptions import CredentialsException
 from .. import utils
+from .. import logger
 
 
 router = APIRouter(
@@ -31,4 +32,8 @@ async def login_for_access_token(
 	access_token = utils.create_access_token(
 		data={"sub": user.email}
 	)
+	logger.info(f"User {email} (ID: {user.id}) was successfully authorized")
 	return {"access_token": access_token, "token_type": "bearer"}
+
+
+

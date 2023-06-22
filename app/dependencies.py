@@ -1,11 +1,11 @@
 from fastapi.security import OAuth2PasswordBearer
 from .exceptions import CredentialsException
-from fastapi import Depends
+from fastapi import Depends, status, HTTPException, Path
 from typing import Annotated
 from jose import JWTError, jwt
 import config
 from . import schemas
-from .models.users import User
+from .models.users import User, users
 from .database import db
 
 # dependency that expects for token from user
@@ -33,3 +33,27 @@ async def get_current_user(
 	if user is None:
 		raise CredentialsException()
 	return user
+
+
+async def get_current_active_user(
+	current_user: Annotated[schemas.User, Depends(get_current_user)]
+) -> schemas.User:
+	"""
+	Функция проверяет, заблокирован ли пользователь, сделавший запрос.
+	"""
+	if current_user.disabled:
+		raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Disabled user")
+	return current_user
+
+
+async def get_user_id(
+	user_id: Annotated[int, Path(ge=1)]
+) -> int:
+	"""
+	Функция проверяет, существует ли пользователь с переданным ИД.
+	"""
+	query = users.select().where(users.c.id == user_id)
+	user_db = await db.fetch_one(query)
+	if user_db is None:
+		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+	return user_id

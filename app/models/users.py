@@ -1,5 +1,5 @@
 import sqlalchemy
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Boolean
 from ..database import Base
 from sqlalchemy.orm import relationship
 from databases import Database
@@ -23,6 +23,8 @@ class User(Base):
 	email = Column(String(length=50), unique=True, index=True)
 	first_name = Column(String(length=50))
 	last_name = Column(String(length=50), nullable=True, default=None)
+	is_staff = Column(Boolean, default=False)
+	disabled = Column(Boolean, default=False)
 	hashed_password = Column(String)
 
 	notes = relationship("Note", back_populates="user")
@@ -51,6 +53,20 @@ class User(Base):
 		if not utils.verify_password(password, user.hashed_password):
 			return False
 		return user
+
+	@staticmethod
+	async def check_user_permissions(current_user: schemas.User, user_id: int) -> bool:
+		"""
+		:param current_user: Пользователь, совершающий CRUD-действие.
+		:param user_id: ИД пользователя, над данными которого совершается операция.
+		:return: Возвращает True, если проверка прошла успешно.
+		Действие (удаление/обновление/...) над данными пользователя возможно только для:
+		- Самого пользователя;
+		- Стафф-пользователя (is_staff=True в БД).
+		"""
+		if not current_user.is_staff and current_user.id != user_id:
+			return False
+		return True
 
 
 # sqlalchemy Table instance for using SA core queries with databases package

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 import datetime
 
 
@@ -50,8 +50,7 @@ class Task(Note):
 
 
 class UserBase(BaseModel):
-	email: str = Field(
-		max_length=50,
+	email: EmailStr = Field(
 		title="User's email",
 		example="ijoech@gmail.com"
 	)
@@ -74,6 +73,14 @@ class UserCreate(UserBase):
 
 class User(UserBase):
 	id: int = Field(ge=1)
+	is_staff: bool | None = Field(
+		title="True if user has staff-permissions",
+		default=False
+	)
+	disabled: bool | None = Field(
+		title="False if user is active and non-blocked",
+		default=False
+	)
 	notes: list[Note] = []
 	tasks: list[Task] = []
 
@@ -84,3 +91,30 @@ class User(UserBase):
 class UserInDB(User):
 	hashed_password: str
 
+
+class UserUpdate(BaseModel):
+	email: EmailStr | None = Field(
+		title="User's email",
+		example="ijoech@gmail.com",
+		default=None
+	)
+	first_name: str | None = Field(
+		max_length=50,
+		title="User first name, required",
+		example="Yaroslav",
+		default=None
+	)
+	last_name: str | None = Field(
+		max_length=50,
+		title="User last name, optional",
+		example="Ivanov",
+		default=None
+	)
+	password: str | None = Field(
+		min_length=8,
+		default=None
+	)
+	disabled: bool | None = Field(
+		title="False if user is active and non-blocked",
+		default=False
+	)

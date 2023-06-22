@@ -6,10 +6,12 @@ load_dotenv()
 # .env params are needed for database initializing
 from app import logger_init, database_init, start_app
 
+# TODO: разобраться, почему loguru.logger не пишет логи в файл даже после инициализации
+
 
 def main():
 	"""
-	Synchronous preparing for starting app
+	Synchronously preparing for starting app
 	"""
 	logger_init()
 	database_init()

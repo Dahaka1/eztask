@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Body, HTTPException, status, Depends
+from fastapi import APIRouter, Body, HTTPException, status, Depends, Path
 from .. import schemas, crud
-from ..models.users import users
+from ..models.users import users, User
 from ..database import db
 from typing import Annotated
-from ..dependencies import get_current_user
+from ..dependencies import get_current_active_user, get_user_id
+from ..exceptions import PermissionsError
 
 
 router = APIRouter(
@@ -28,10 +29,43 @@ async def create_user(
 
 @router.get("/me", response_model=schemas.User)
 async def read_users_me(
-	current_user: Annotated[schemas.User, Depends(get_current_user)]
+	current_user: Annotated[schemas.User, Depends(get_current_active_user)]
 ):
 	"""
 	Получение данных аккаунта пользователем после проверки его токена.
 	"""
 	return current_user
 
+
+@router.put("/{user_id}", response_model=schemas.User)
+async def update_user(
+	user: Annotated[schemas.UserUpdate, Body(embed=True, title="User updated params dict")],
+	current_user: Annotated[schemas.User, Depends(get_current_active_user)],
+	user_id: Annotated[int, Depends(get_user_id)]
+):
+	"""
+	Обновление данных пользователя. Обновить данные могут:
+	- сам пользователь;
+	- стафф-пользователь.
+	Права проверяются функцией check_user_permissions..
+	TODO: решить, может ли стафф менять пароль у другого пользователя (сейчас может)
+	"""
+	if not await User.check_user_permissions(current_user=current_user, user_id=user_id):
+		raise PermissionsError()
+	if any(user.dict().values()):
+		return await crud.update_user(user=user, user_id=user_id, action_by=current_user)
+	else:
+		return current_user
+
+
+@router.delete("/{user_id}")
+async def delete_user(
+	current_user: Annotated[schemas.User, Depends(get_current_active_user)],
+	user_id: Annotated[int, Depends(get_user_id)]
+):
+	"""
+	см. update_user
+	"""
+	if not await User.check_user_permissions(current_user=current_user, user_id=user_id):
+		raise PermissionsError()
+	return await crud.delete_user(user_id=user_id, action_by=current_user)
