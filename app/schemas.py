@@ -113,11 +113,31 @@ class UserInDB(User):
 
 
 class UserUpdate(BaseModel):
-	email: Optional[EmailStr] = None
-	first_name: Optional[str] = None
-	last_name: Optional[str] = None
-	password: Optional[str] = None
-	disabled: Optional[bool] = False
+	email: Optional[EmailStr] = Field(
+		title="User's email",
+		example="ijoech@gmail.com",
+		default=None
+	)
+	first_name: Optional[str] = Field(
+		max_length=50,
+		title="User first name, required",
+		example="Yaroslav",
+		default=None
+	)
+	last_name: Optional[str] = Field(
+		max_length=50,
+		title="User last name, optional",
+		example="Ivanov",
+		default=None
+	)
+	password: Optional[str] = Field(
+		min_length=8,
+		default=None
+	)
+	disabled: Optional[bool] = Field(
+		title="False if user is active and non-blocked",
+		default=False
+	)
 
 
 class GetNotesParams(BaseModel):
