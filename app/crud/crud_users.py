@@ -1,7 +1,15 @@
-from . import schemas, logger
-from .models.users import users
-from .database import db
-from .utils import get_password_hash
+from .. import schemas, logger
+from ..models.users import users
+from ..database import db
+from ..utils import get_password_hash
+
+
+async def get_users():
+	"""
+	:return: Возвращает список всех пользователей (pydantic-модели)
+	"""
+	query = users.select()
+	return await db.fetch_all(query)
 
 
 async def create_user(user: schemas.UserCreate):

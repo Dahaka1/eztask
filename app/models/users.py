@@ -28,7 +28,6 @@ class User(Base):
 	hashed_password = Column(String)
 
 	notes = relationship("Note", back_populates="user")
-	tasks = relationship("Task", back_populates="user")
 
 	@staticmethod
 	async def get_user_by_email(db: Database, email: str) -> Optional[schemas.UserInDB]:
@@ -60,9 +59,13 @@ class User(Base):
 		:param current_user: Пользователь, совершающий CRUD-действие.
 		:param user_id: ИД пользователя, над данными которого совершается операция.
 		:return: Возвращает True, если проверка прошла успешно.
+
 		Действие (удаление/обновление/...) над данными пользователя возможно только для:
 		- Самого пользователя;
 		- Стафф-пользователя (is_staff=True в БД).
+
+		Действие над данными заметки возможно только для:
+		- Создателя заметки.
 		"""
 		if not current_user.is_staff and current_user.id != user_id:
 			return False

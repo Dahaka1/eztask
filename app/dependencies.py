@@ -6,6 +6,7 @@ from jose import JWTError, jwt
 import config
 from . import schemas
 from .models.users import User, users
+from .models.notes import notes
 from .database import db
 
 # dependency that expects for token from user
@@ -57,3 +58,17 @@ async def get_user_id(
 	if user_db is None:
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 	return user_id
+
+
+async def get_note(
+	note_id: Annotated[int, Path(ge=1)]
+) -> schemas.Note:
+	"""
+	Функция проверяет, существует ли заметка с переданным ИД.
+	"""
+	note = await db.fetch_one(
+		notes.select().where(notes.c.id == note_id)
+	)
+	if note is None:
+		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note not found")
+	return note

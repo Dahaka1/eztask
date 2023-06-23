@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Body, HTTPException, status, Depends, Path
-from .. import schemas, crud
+from fastapi import APIRouter, Body, HTTPException, status, Depends
+from .. import schemas
 from ..models.users import users, User
 from ..database import db
 from typing import Annotated
 from ..dependencies import get_current_active_user, get_user_id
 from ..exceptions import PermissionsError
+from ..crud import crud_users
 
 
 router = APIRouter(
@@ -12,8 +13,22 @@ router = APIRouter(
 	tags=["users"]
 )
 
+# TODO: user retrieve by id (not by himself)
 
-@router.post("/register", response_model=schemas.User)
+
+@router.get("/", response_model=list[schemas.User])
+async def read_users(
+	current_user: Annotated[schemas.User, Depends(get_current_active_user)]
+):
+	"""
+	Получение списка всех пользователей
+	"""
+	if current_user.is_staff:
+		return await crud_users.get_users()
+	raise PermissionsError()
+
+
+@router.post("/", response_model=schemas.User)
 async def create_user(
 	user: Annotated[schemas.UserCreate, Body(embed=True, title="User params dict key")]
 ):
@@ -24,7 +39,7 @@ async def create_user(
 	existing_user = await db.execute(query)
 	if existing_user:
 		raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
-	return await crud.create_user(user)
+	return await crud_users.create_user(user)
 
 
 @router.get("/me", response_model=schemas.User)
@@ -47,13 +62,13 @@ async def update_user(
 	Обновление данных пользователя. Обновить данные могут:
 	- сам пользователь;
 	- стафф-пользователь.
-	Права проверяются функцией check_user_permissions..
+	Права проверяются функцией check_user_permissions.
 	TODO: решить, может ли стафф менять пароль у другого пользователя (сейчас может)
 	"""
 	if not await User.check_user_permissions(current_user=current_user, user_id=user_id):
 		raise PermissionsError()
 	if any(user.dict().values()):
-		return await crud.update_user(user=user, user_id=user_id, action_by=current_user)
+		return await crud_users.update_user(user=user, user_id=user_id, action_by=current_user)
 	else:
 		return current_user
 
@@ -68,4 +83,4 @@ async def delete_user(
 	"""
 	if not await User.check_user_permissions(current_user=current_user, user_id=user_id):
 		raise PermissionsError()
-	return await crud.delete_user(user_id=user_id, action_by=current_user)
+	return await crud_users.delete_user(user_id=user_id, action_by=current_user)
