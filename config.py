@@ -5,21 +5,26 @@ from passlib.context import CryptContext
 DB_PARAMS = {"user": os.environ.get("DB_USER"), "password": os.environ.get("DB_PASSWORD"),
 	"host": os.environ.get("DB_HOST"), "port": os.environ.get("DB_PORT"), "dbname": os.environ.get("DB_NAME")}
 
+DB_PARAMS_TEST = {"user": os.environ.get("DB_USER_TEST"), "password": os.environ.get("DB_PASSWORD_TEST"),
+	"host": os.environ.get("DB_HOST_TEST"), "port": os.environ.get("DB_PORT_TEST"),
+				  "dbname": os.environ.get("DB_NAME_TEST")}
+
 
 DATABASE_URL = "postgresql://%s:%s@%s:%s/%s" % tuple(DB_PARAMS.values())
+
+DATABASE_URL_TEST = "postgresql+asyncpg://%s:%s@%s:%s/%s" % tuple(DB_PARAMS_TEST.values())
 
 
 API_DOCS_URL = "/api/v1/docs"
 OPENAPI_URL = "/api/v1/openapi.json"
 
 # loguru logger settings
-LOGGING_FORMAT = '{time} {level} {message}'
-ERRORS_OUTPUT_FILE = 'logs.log'
-LOGGING_LEVELS = [
-	"ERROR",
-	"INFO"
-]
-
+LOGGING_OUTPUT = "logs.log"
+LOGGING_PARAMS = {
+	"sink": LOGGING_OUTPUT,
+	"rotation": "1 MB",
+	"compression": "zip"
+}
 
 # alembic: commands for initializing migrations
 ALEMBIC_MIGRATION_CMDS = [

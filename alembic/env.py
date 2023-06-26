@@ -22,6 +22,7 @@ if config.config_file_name is not None:
 from app.database import Base
 from app.models.users import User
 from app.models.notes import Note
+from app.models.day_ratings import DayRating
 
 target_metadata = Base.metadata
 

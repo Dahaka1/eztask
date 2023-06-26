@@ -1,5 +1,5 @@
 import sqlalchemy
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from ..database import Base
 from sqlalchemy.orm import relationship
 from databases import Database
@@ -15,7 +15,6 @@ class User(Base):
 	"""
 	 Модель пользователя
 	TODO: добавить поле ТГ-аккаунта, если буду интегрировать поддержку ТГ
-	TODO: добавить поля для аутентификационных данных
 	"""
 	__tablename__ = "users"
 
@@ -26,8 +25,10 @@ class User(Base):
 	is_staff = Column(Boolean, default=False)
 	disabled = Column(Boolean, default=False)
 	hashed_password = Column(String)
+	registered_at = Column(DateTime(timezone=True))
 
 	notes = relationship("Note", back_populates="user")
+	day_ratings = relationship("DayRating", back_populates="user")
 
 	@staticmethod
 	async def get_user_by_email(db: Database, email: str) -> Optional[schemas.UserInDB]:

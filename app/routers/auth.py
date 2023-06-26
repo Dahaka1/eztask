@@ -6,7 +6,7 @@ from ..models.users import User
 from ..database import db
 from ..exceptions import CredentialsException
 from .. import utils
-from .. import logger
+from loguru import logger
 
 
 router = APIRouter(

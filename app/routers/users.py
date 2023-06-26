@@ -28,7 +28,7 @@ async def read_users(
 	raise PermissionsError()
 
 
-@router.post("/", response_model=schemas.User)
+@router.post("/", response_model=schemas.User, status_code=status.HTTP_201_CREATED)
 async def create_user(
 	user: Annotated[schemas.UserCreate, Body(embed=True, title="User params dict key")]
 ):
@@ -63,7 +63,6 @@ async def update_user(
 	- сам пользователь;
 	- стафф-пользователь.
 	Права проверяются функцией check_user_permissions.
-	TODO: решить, может ли стафф менять пароль у другого пользователя (сейчас может)
 	"""
 	if not await User.check_user_permissions(current_user=current_user, user_id=user_id):
 		raise PermissionsError()

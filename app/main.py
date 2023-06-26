@@ -1,8 +1,8 @@
 from fastapi import FastAPI, APIRouter
 from .database import db
-from .routers import users, auth, notes
+from .routers import users, auth, notes, day_ratings
 import config
-from . import logger
+from loguru import logger
 
 
 app = FastAPI(
@@ -15,6 +15,7 @@ api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(users.router)
 api_router.include_router(auth.router)
 api_router.include_router(notes.router)
+api_router.include_router(day_ratings.router)
 
 app.include_router(api_router)
 
@@ -24,6 +25,7 @@ async def startup():
 	"""
 	Действия при старте сервера.
 	"""
+	logger.add("logs.log")
 	logger.info("Starting server")
 	await db.connect()
 

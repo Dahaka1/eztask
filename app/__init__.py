@@ -5,20 +5,6 @@ from .static.sql_queries import GET_ALL_TABLES
 import os
 
 
-def logger_init() -> None:
-	"""
-	Использую loguru для дополнительного логирования.
-	"""
-	for level in config.LOGGING_LEVELS:
-		logger.add(
-			config.ERRORS_OUTPUT_FILE,
-			level=level,
-			format=config.LOGGING_FORMAT,
-			rotation="1 MB",
-			compression="zip"
-		)
-
-
 def database_init() -> None:
 	"""
 	Создание таблиц в БД по умолчанию.

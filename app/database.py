@@ -4,7 +4,6 @@ import config
 import databases
 from psycopg2 import connect
 
-
 SQLALCHEMY_DATABASE_URL = config.DATABASE_URL
 
 engine = create_engine(

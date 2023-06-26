@@ -12,8 +12,6 @@ router = APIRouter(
 	tags=["notes"]
 )
 
-# TODO: note delete
-
 
 @router.get("/", response_model=list[schemas.Note])
 async def read_notes(
@@ -28,7 +26,7 @@ async def read_notes(
 	raise PermissionsError()
 
 
-@router.post("/", response_model=schemas.Note)
+@router.post("/", response_model=schemas.Note, status_code=status.HTTP_201_CREATED)
 async def create_note(
 	current_user: Annotated[schemas.User, Depends(get_current_active_user)],
 	note: Annotated[schemas.NoteCreate, Body(embed=True, title="Note creating params")]
@@ -50,7 +48,7 @@ async def create_note(
 @router.get("/me", response_model=list[schemas.Note])
 async def read_notes_me(
 	current_user: Annotated[schemas.User, Depends(get_current_active_user)],
-	params: Annotated[
+	filtering: Annotated[
 		schemas.GetNotesParams | None,
 		Body(embed=True, title="Sorting and filtering notes params")
 	] = None
@@ -61,9 +59,9 @@ async def read_notes_me(
 	По умолчанию возвращаются только сегодняшние/предстоящие заметки
 	 всех типов с сортировкой по дате создания.
 	"""
-	if params is None:
-		params = schemas.GetNotesParams()
-	return await crud_notes.get_user_notes(current_user, params)
+	if filtering is None:
+		filtering = schemas.GetNotesParams()
+	return await crud_notes.get_user_notes(current_user, filtering)
 
 
 @router.get("/{note_id}", response_model=schemas.Note)
@@ -73,9 +71,9 @@ async def read_note(
 ):
 	"""
 	Получить данные заметки.
-	Доступно только для ее создателя или для is_staff-пользователя.
+	Доступно только для ее создателя.
 	"""
-	if not current_user.is_staff and note.user_id != current_user.id:
+	if note.user_id != current_user.id:
 		raise PermissionsError()
 	return note
 
@@ -84,15 +82,29 @@ async def read_note(
 async def update_note(
 	current_user: Annotated[schemas.User, Depends(get_current_active_user)],
 	current_note: Annotated[schemas.Note, Depends(get_note)],
-	note: Annotated[schemas.NoteUpdate, Body(embed=True)]  # updated note data
+	note: Annotated[schemas.NoteUpdate, Body(embed=True, title="Updated note")]
 ):
 	"""
-	Обновление заметки. Обновить может is_staff-пользователь или создатель заметки.
+	Обновление заметки. Обновить может создатель заметки.
 	Нельзя установить дату ранее текущего дня.
 	"""
-	if not current_user.is_staff and current_note.user_id != current_user.id:
+	if current_note.user_id != current_user.id:
 		raise PermissionsError()
 	if not note.date is None and note.date < date.today():
 		raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
 							detail="Date of note should be today or future date.")
 	return await crud_notes.update_note(current_note, note)
+
+
+@router.delete("/{note_id}", response_model=schemas.Note)
+async def delete_note(
+	current_user: Annotated[schemas.User, Depends(get_current_active_user)],
+	current_note: Annotated[schemas.Note, Depends(get_note)]
+):
+	"""
+	Удаление заметки.
+	Доступно для создателя заметки.
+	"""
+	if current_note.user_id != current_user.id:
+		raise PermissionsError()
+	return await crud_notes.delete_note(current_note)

@@ -1,5 +1,5 @@
 import sqlalchemy
-from sqlalchemy import Column, Integer, String, Date, ForeignKey, Enum, Boolean
+from sqlalchemy import Column, Integer, String, Date, ForeignKey, Enum, Boolean, DateTime
 from ..database import Base
 from sqlalchemy.orm import relationship
 from ..schemas import GetNotesParams
@@ -26,6 +26,7 @@ class Note(Base):
 	note_type = Column(note_type_enum)
 	text = Column(String(length=1000))
 	date = Column(Date)
+	created_at = Column(DateTime(timezone=True))
 	completed = Column(Boolean, nullable=True)  # it's null if note type is std note
 	user_id = Column(Integer, ForeignKey("users.id"))
 

@@ -1,4 +1,5 @@
-from .. import schemas, logger
+from .. import schemas
+from loguru import logger
 from ..models.users import users
 from ..database import db
 from ..utils import get_password_hash
@@ -8,7 +9,7 @@ async def get_users():
 	"""
 	:return: Возвращает список всех пользователей (pydantic-модели)
 	"""
-	query = users.select()
+	query = users.select().order_by(users.c.registered_at)
 	return await db.fetch_all(query)
 
 
@@ -23,7 +24,8 @@ async def create_user(user: schemas.UserCreate):
 		last_name=user.last_name,
 		hashed_password=hashed_password,
 		is_staff=False,
-		disabled=False
+		disabled=False,
+		registered_at=user.registered_at
 	)  # пришлось тут определить is_staff и disabled опять - почему-то дефолтные значения в
 	# models.users.User не срабатывают :(
 	user_id = await db.execute(query)
@@ -44,8 +46,11 @@ async def update_user(user: schemas.UserUpdate, user_id: int, action_by: schemas
 	for key, val in user.dict().items():
 		if not val is None:
 			if key == "password":
-				hashed_password = get_password_hash(val)
-				user_db["hashed_password"] = hashed_password
+				if action_by.id != user_id:
+					pass  # only user can set a new password, not staff
+				else:
+					hashed_password = get_password_hash(val)
+					user_db["hashed_password"] = hashed_password
 			else:
 				user_db[key] = val
 	query = users.update().where(users.c.id == user_id).values(**user_db)

@@ -4,16 +4,16 @@ load_dotenv()
 
 # importing from app after load dotenv because
 # .env params are needed for database initializing
-from app import logger_init, database_init, start_app
-
-# TODO: разобраться, почему loguru.logger не пишет логи в файл даже после инициализации
+from app import database_init, start_app
+from loguru import logger
+from config import LOGGING_PARAMS
 
 
 def main():
 	"""
 	Synchronously preparing for starting app
 	"""
-	logger_init()
+	logger.add(**LOGGING_PARAMS)
 	database_init()
 	start_app()
 
