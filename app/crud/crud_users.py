@@ -1,24 +1,27 @@
 from .. import schemas
 from loguru import logger
-from ..models.users import users
-from ..database import db
 from ..utils import get_password_hash
+from sqlalchemy.ext.asyncio import AsyncSession
+from ..models.users import User, users
+from sqlalchemy import select, insert, update, delete
+from ..utils import sa_objects_dicts_list, sa_object_to_dict
 
 
-async def get_users():
+async def get_users(db: AsyncSession):
 	"""
 	:return: Возвращает список всех пользователей (pydantic-модели)
 	"""
-	query = users.select().order_by(users.c.registered_at)
-	return await db.fetch_all(query)
+	query = select(User).order_by(users.c.registered_at)
+	result = await db.execute(query)
+	return sa_objects_dicts_list(result.scalars().all())
 
 
-async def create_user(user: schemas.UserCreate):
+async def create_user(user: schemas.UserCreate, db: AsyncSession):
 	"""
 	:return: Возвращает словарь с данными созданного юзера.
 	"""
 	hashed_password = get_password_hash(user.password)
-	query = users.insert().values(
+	query = insert(User).values(
 		email=user.email,
 		first_name=user.first_name,
 		last_name=user.last_name,
@@ -29,6 +32,9 @@ async def create_user(user: schemas.UserCreate):
 	)  # пришлось тут определить is_staff и disabled опять - почему-то дефолтные значения в
 	# models.users.User не срабатывают :(
 	user_id = await db.execute(query)
+	await db.commit()
+
+	user_id = user_id.inserted_primary_key[0]
 
 	logger.info(f"User {user.email} (ID: {user_id}) was successfully registered")
 
@@ -37,12 +43,13 @@ async def create_user(user: schemas.UserCreate):
 	}
 
 
-async def update_user(user: schemas.UserUpdate, user_id: int, action_by: schemas.User):
+async def update_user(user: schemas.UserUpdate, user_id: int, action_by: schemas.User, db: AsyncSession):
 	"""
 	:return: Возвращает словарь с данными обновленного пользователя.
 	"""
-	query = users.select().where(users.c.id == user_id)
-	user_db = dict(await db.fetch_one(query))
+	query = select(User).where(users.c.id == user_id)
+	result = await db.execute(query)
+	user_db = sa_object_to_dict(result.scalar())
 	for key, val in user.dict().items():
 		if not val is None:
 			if key == "password":
@@ -53,8 +60,9 @@ async def update_user(user: schemas.UserUpdate, user_id: int, action_by: schemas
 					user_db["hashed_password"] = hashed_password
 			else:
 				user_db[key] = val
-	query = users.update().where(users.c.id == user_id).values(**user_db)
+	query = update(User).where(users.c.id == user_id).values(**user_db)
 	await db.execute(query)
+	await db.commit()
 
 	logger.info(f"User {user_db['email']} (ID: {user_id}) was successfully updated by user "
 				f"{action_by.email} with ID {action_by.id}")
@@ -62,12 +70,13 @@ async def update_user(user: schemas.UserUpdate, user_id: int, action_by: schemas
 	return user_db
 
 
-async def delete_user(user_id: int, action_by: schemas.User) -> dict[str, int]:
+async def delete_user(user_id: int, action_by: schemas.User, db: AsyncSession) -> dict[str, int]:
 	"""
 	:return: Возвращает ИД удаленного пользователя.
 	"""
-	query = users.delete().where(users.c.id == user_id)
+	query = delete(User).where(users.c.id == user_id)
 	await db.execute(query)
+	await db.commit()
 
 	logger.info(f"User ID: {user_id} was successfully deleted by user {action_by.email} with ID "
 				f"{action_by.id}")

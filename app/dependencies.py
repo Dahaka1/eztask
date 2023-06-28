@@ -1,5 +1,4 @@
 import datetime
-
 from fastapi.security import OAuth2PasswordBearer
 from .exceptions import CredentialsException
 from fastapi import Depends, status, HTTPException, Path, Query
@@ -7,17 +6,28 @@ from typing import Annotated
 from jose import JWTError, jwt
 import config
 from . import schemas
+from typing import AsyncGenerator
+from .database import async_session_maker
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from .models.users import User, users
-from .models.notes import notes
-from .models.day_ratings import day_ratings
-from .database import db
+from .models.notes import Note, notes
+from .models.day_ratings import DayRating, day_ratings
+from .utils import sa_object_to_dict
+
 
 # dependency that expects for token from user
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+	async with async_session_maker() as session:
+		yield session
+
+
 async def get_current_user(
-	token: Annotated[str, Depends(oauth2_scheme)]
+	token: Annotated[str, Depends(oauth2_scheme)],
+	db: Annotated[AsyncSession, Depends(get_async_session)]
 ) -> schemas.UserInDB:
 	"""
 	Функция для декодирования получаемого от пользователя токена.
@@ -46,56 +56,66 @@ async def get_current_active_user(
 	Функция проверяет, заблокирован ли пользователь, сделавший запрос.
 	"""
 	if current_user.disabled:
-		raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Disabled user")
+		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Disabled user")
 	return current_user
 
 
 async def get_user_id(
-	user_id: Annotated[int, Path(ge=1)]
+	user_id: Annotated[int, Path(ge=1)],
+	db: Annotated[AsyncSession, Depends(get_async_session)]
 ) -> int:
 	"""
 	Функция проверяет, существует ли пользователь с переданным ИД.
 	Возвращает ИД.
 	"""
-	user_db = await db.fetch_one(
-		users.select().where(users.c.id == user_id)
+	result = await db.execute(
+		select(User).where(users.c.id == user_id)
 	)
+	user_db = result.scalar()
 	if user_db is None:
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 	return user_id
 
 
 async def get_note(
-	note_id: Annotated[int, Path(ge=1)]
+	note_id: Annotated[int, Path(ge=1)],
+	db: Annotated[AsyncSession, Depends(get_async_session)]
 ) -> schemas.Note:
 	"""
 	Функция проверяет, существует ли заметка с переданным ИД.
 	Возвращает pydantic-объект заметки.
 	"""
-	note = await db.fetch_one(
-		notes.select().where(notes.c.id == note_id)
+	result = await db.execute(
+		select(Note).where(notes.c.id == note_id)
 	)
+	note = result.scalar()
 	if note is None:
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note not found")
-	return note
+	note_dict = sa_object_to_dict(note)
+
+	return schemas.Note(**note_dict)
 
 
 async def get_day_rating(
 	date: Annotated[datetime.date, Query(title="Day rating date", example="2000-01-01")],
-	user_id: Annotated[int, Depends(get_user_id)]
+	user_id: Annotated[int, Depends(get_user_id)],
+	db: Annotated[AsyncSession, Depends(get_async_session)]
 ):
 	"""
 	Функция проверяет, существует ли пользователь и его оценка дня по переданной дате.
 	"""
-	day_rating = await db.fetch_one(
-		day_ratings.select().where(
+	result = await db.execute(
+		select(DayRating).where(
 			(day_ratings.c.user_id == user_id) &
 			(day_ratings.c.date == date)
 		)
 	)
+	day_rating = result.scalar()
 	if day_rating is None:
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Day rating not found")
-	return day_rating
+	day_rating = sa_object_to_dict(day_rating)
+
+	return schemas.DayRating(**day_rating)
 
 
 async def get_day_rating_filters(

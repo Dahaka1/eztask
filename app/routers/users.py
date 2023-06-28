@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Body, HTTPException, status, Depends
 from .. import schemas
-from ..models.users import users, User
-from ..database import db
+from ..models.users import User, users
 from typing import Annotated
 from ..dependencies import get_current_active_user, get_user_id
 from ..exceptions import PermissionsError
 from ..crud import crud_users
+from ..dependencies import get_async_session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 
 router = APIRouter(
@@ -18,28 +20,31 @@ router = APIRouter(
 
 @router.get("/", response_model=list[schemas.User])
 async def read_users(
-	current_user: Annotated[schemas.User, Depends(get_current_active_user)]
+	current_user: Annotated[schemas.User, Depends(get_current_active_user)],
+	db: Annotated[AsyncSession, Depends(get_async_session)]
 ):
 	"""
 	Получение списка всех пользователей
 	"""
 	if current_user.is_staff:
-		return await crud_users.get_users()
+		return await crud_users.get_users(db=db)
 	raise PermissionsError()
 
 
 @router.post("/", response_model=schemas.User, status_code=status.HTTP_201_CREATED)
 async def create_user(
-	user: Annotated[schemas.UserCreate, Body(embed=True, title="User params dict key")]
+	user: Annotated[schemas.UserCreate, Body(embed=True, title="User params dict key")],
+	db: Annotated[AsyncSession, Depends(get_async_session)]
 ):
 	"""
 	Регистрация пользователя по email.
 	"""
-	query = users.select().where(users.c.email == user.email)
-	existing_user = await db.execute(query)
+	query = select(User).where(users.c.email == user.email)
+	result = await db.execute(query)
+	existing_user = result.scalar()
 	if existing_user:
 		raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
-	return await crud_users.create_user(user)
+	return await crud_users.create_user(user, db=db)
 
 
 @router.get("/me", response_model=schemas.User)
@@ -56,7 +61,8 @@ async def read_users_me(
 async def update_user(
 	user: Annotated[schemas.UserUpdate, Body(embed=True, title="User updated params dict")],
 	current_user: Annotated[schemas.User, Depends(get_current_active_user)],
-	user_id: Annotated[int, Depends(get_user_id)]
+	user_id: Annotated[int, Depends(get_user_id)],
+	db: Annotated[AsyncSession, Depends(get_async_session)]
 ):
 	"""
 	Обновление данных пользователя. Обновить данные могут:
@@ -64,10 +70,10 @@ async def update_user(
 	- стафф-пользователь.
 	Права проверяются функцией check_user_permissions.
 	"""
-	if not await User.check_user_permissions(current_user=current_user, user_id=user_id):
+	if not User.check_user_permissions(current_user=current_user, user_id=user_id):
 		raise PermissionsError()
 	if any(user.dict().values()):
-		return await crud_users.update_user(user=user, user_id=user_id, action_by=current_user)
+		return await crud_users.update_user(user=user, user_id=user_id, action_by=current_user, db=db)
 	else:
 		return current_user
 
@@ -75,11 +81,12 @@ async def update_user(
 @router.delete("/{user_id}")
 async def delete_user(
 	current_user: Annotated[schemas.User, Depends(get_current_active_user)],
-	user_id: Annotated[int, Depends(get_user_id)]
-):
+	user_id: Annotated[int, Depends(get_user_id)],
+	db: Annotated[AsyncSession, Depends(get_async_session)]
+) -> dict[str, int]:
 	"""
 	см. update_user
 	"""
-	if not await User.check_user_permissions(current_user=current_user, user_id=user_id):
+	if not User.check_user_permissions(current_user=current_user, user_id=user_id):
 		raise PermissionsError()
-	return await crud_users.delete_user(user_id=user_id, action_by=current_user)
+	return await crud_users.delete_user(user_id=user_id, action_by=current_user, db=db)

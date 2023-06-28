@@ -1,10 +1,10 @@
-import sqlalchemy
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, select, Table
 from ..database import Base
 from sqlalchemy.orm import relationship
-from databases import Database
 from .. import schemas, utils
 from typing import Optional
+from sqlalchemy.ext.asyncio import AsyncSession
+from ..utils import sa_object_to_dict
 
 
 # TODO: после доработки функций с текущими моделями
@@ -27,21 +27,20 @@ class User(Base):
 	hashed_password = Column(String)
 	registered_at = Column(DateTime(timezone=True))
 
-	notes = relationship("Note", back_populates="user")
-	day_ratings = relationship("DayRating", back_populates="user")
-
 	@staticmethod
-	async def get_user_by_email(db: Database, email: str) -> Optional[schemas.UserInDB]:
+	async def get_user_by_email(db: AsyncSession, email: str) -> Optional[schemas.UserInDB]:
 		"""
 		Поиск пользователя по email.
 		"""
-		query = users.select().where(users.c.email == email)
-		user: dict | None = await db.fetch_one(query)
+		query = select(User).where(users.c.email == email)
+		result = await db.execute(query)
+		user: User | None = result.scalar()
 		if user:
+			user: dict = sa_object_to_dict(user)
 			return schemas.UserInDB(**user)
 
 	@staticmethod
-	async def authenticate_user(db: Database, email: str, password: str) -> bool | schemas.UserInDB:
+	async def authenticate_user(db: AsyncSession, email: str, password: str) -> bool | schemas.UserInDB:
 		"""
 		Аутентификация пользователя: если пользователя с таким email не существует или
 		был введен неправильный пароль - возвращает False; иначе возвращает pydantic-модель пользователя
@@ -55,7 +54,7 @@ class User(Base):
 		return user
 
 	@staticmethod
-	async def check_user_permissions(current_user: schemas.User, user_id: int) -> bool:
+	def check_user_permissions(current_user: schemas.User, user_id: int) -> bool:
 		"""
 		:param current_user: Пользователь, совершающий CRUD-действие.
 		:param user_id: ИД пользователя, над данными которого совершается операция.
@@ -73,5 +72,5 @@ class User(Base):
 		return True
 
 
-# sqlalchemy Table instance for using SA core queries with databases package
-users: sqlalchemy.Table = User.__table__
+# sa table instance for using with db queries
+users: Table = User.__table__

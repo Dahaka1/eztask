@@ -1,8 +1,8 @@
 from fastapi import FastAPI, APIRouter
-from .database import db
 from .routers import users, auth, notes, day_ratings
 import config
 from loguru import logger
+from config import LOGGING_PARAMS
 
 
 app = FastAPI(
@@ -25,9 +25,8 @@ async def startup():
 	"""
 	Действия при старте сервера.
 	"""
-	logger.add("logs.log")
+	logger.add(**LOGGING_PARAMS)
 	logger.info("Starting server")
-	await db.connect()
 
 
 @app.on_event("shutdown")
@@ -36,7 +35,6 @@ async def shutdown():
 	Действия при отключении сервера.
 	"""
 	logger.info("Stopping server")
-	await db.disconnect()
 
 
 

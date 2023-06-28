@@ -10,7 +10,7 @@ DB_PARAMS_TEST = {"user": os.environ.get("DB_USER_TEST"), "password": os.environ
 				  "dbname": os.environ.get("DB_NAME_TEST")}
 
 
-DATABASE_URL = "postgresql://%s:%s@%s:%s/%s" % tuple(DB_PARAMS.values())
+DATABASE_URL = "postgresql+asyncpg://%s:%s@%s:%s/%s" % tuple(DB_PARAMS.values())
 
 DATABASE_URL_TEST = "postgresql+asyncpg://%s:%s@%s:%s/%s" % tuple(DB_PARAMS_TEST.values())
 

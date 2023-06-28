@@ -1,11 +1,12 @@
-import sqlalchemy
 from sqlalchemy import Column, Integer, String, Date, ForeignKey, Enum, Boolean, DateTime
 from ..database import Base
 from sqlalchemy.orm import relationship
 from ..schemas import GetNotesParams
-from ..database import db
 from datetime import date
 from ..static.enums import NoteTypeEnumDB, NoteTypeEnum, NotesCompletedEnum, NotesOrderByEnum, NotesPeriodEnum
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, Table
+from ..utils import sa_objects_dicts_list
 
 
 note_type_enum = Enum(
@@ -30,10 +31,8 @@ class Note(Base):
 	completed = Column(Boolean, nullable=True)  # it's null if note type is std note
 	user_id = Column(Integer, ForeignKey("users.id"))
 
-	user = relationship("User", back_populates="notes")
-
 	@staticmethod
-	async def handle_get_params(notes_list: list[dict], params: GetNotesParams):
+	async def handle_get_params(notes_list: list[dict], params: GetNotesParams, db: AsyncSession):
 		"""
 		Фильтрация и сортировка списка заметок пользователя.
 
@@ -45,7 +44,8 @@ class Note(Base):
 		Вся вспомогательная информация по параметрам: см. 'static.enums'
 		"""
 		if params.period.value != NotesPeriodEnum.upcoming.value:
-			notes_list = await db.fetch_all(notes.select().order_by(notes.c.date))
+			notes_list = await db.execute(select(Note).order_by(notes.c.date))
+			notes_list = sa_objects_dicts_list(notes_list.scalars().all())
 
 		match params.period.value:
 			case NotesPeriodEnum.past.value:
@@ -72,5 +72,5 @@ class Note(Base):
 		return list(notes_list)
 
 
-# sqlalchemy Table instance for using SA core queries with databases package
-notes: sqlalchemy.Table = Note.__table__
+# sa table instance for using with db queries
+notes: Table = Note.__table__

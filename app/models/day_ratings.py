@@ -1,5 +1,4 @@
-import sqlalchemy
-from sqlalchemy import Column, Integer, Boolean, Date, ForeignKey, PrimaryKeyConstraint
+from sqlalchemy import Table, Column, Integer, Boolean, Date, ForeignKey, PrimaryKeyConstraint
 from sqlalchemy.orm import relationship
 from ..database import Base
 from .. import schemas
@@ -18,8 +17,6 @@ class DayRating(Base):
 	next_day_expectations = Column(Boolean, nullable=True)
 	health = Column(Boolean, nullable=True)
 
-	user = relationship("User", back_populates="day_ratings")
-
 	@staticmethod
 	async def check_day_rating_params(day_rating: schemas.DayRatingBase):
 		if all(
@@ -31,5 +28,5 @@ class DayRating(Base):
 		return True
 
 
-# sqlalchemy Table instance for using SA core queries with databases package
-day_ratings: sqlalchemy.Table = DayRating.__table__
+# sa table instance for using with db queries
+day_ratings: Table = DayRating.__table__

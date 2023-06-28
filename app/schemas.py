@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pydantic import BaseModel, Field, EmailStr
 import datetime
 from .static.enums import NoteTypeEnumDB, NotesCompletedEnum, \
@@ -111,7 +113,6 @@ class User(UserBase):
 		title="False if user is active and non-blocked",
 		default=False
 	)
-	notes: Optional[list[Note]] = None
 
 	class Config:
 		orm_mode = True

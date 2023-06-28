@@ -5,7 +5,9 @@ from typing import Annotated
 from ..crud import crud_day_ratings
 from ..exceptions import PermissionsError
 from ..models.day_ratings import DayRating, day_ratings
-from ..database import db
+from ..dependencies import get_async_session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 import datetime
 
 
@@ -18,7 +20,8 @@ router = APIRouter(
 @router.post("/", response_model=schemas.DayRating, status_code=status.HTTP_201_CREATED)
 async def create_day_rating(
 	current_user: Annotated[schemas.User, Depends(get_current_active_user)],
-	day_rating: Annotated[schemas.DayRatingCreate, Body(embed=True)]
+	day_rating: Annotated[schemas.DayRatingCreate, Body(embed=True)],
+	db: Annotated[AsyncSession, Depends(get_async_session)]
 ):
 	"""
 	Добавление оценки дня пользователем.
@@ -35,32 +38,39 @@ async def create_day_rating(
 		needed_params.remove("user_id")
 		raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
 							detail=f"Day rating must contains at least one of rating params {needed_params}")
-	if await db.fetch_one(
-		day_ratings.select().where(day_ratings.c.date == datetime.date.today())
-	) is not None:
-		raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+	existing_day_rating = await db.execute(
+		select(DayRating).where(
+			(day_ratings.c.date == datetime.date.today()) &
+			(day_ratings.c.user_id == day_rating.user_id)
+		)
+	)
+	existing_day_rating = existing_day_rating.scalar()
+	if existing_day_rating is not None:
+		raise HTTPException(status_code=status.HTTP_409_CONFLICT,
 							detail=f"Day rating for date {datetime.date.today()} already exists. "
 								   f"Use the 'put'-method instead of 'post'")
 
-	return await crud_day_ratings.create_day_rating(day_rating)
+	return await crud_day_ratings.create_day_rating(day_rating, db=db)
 
 
 @router.get("/", response_model=list[schemas.DayRating])
 async def read_day_ratings(
-	current_user: Annotated[schemas.User, Depends(get_current_active_user)]
+	current_user: Annotated[schemas.User, Depends(get_current_active_user)],
+	db: Annotated[AsyncSession, Depends(get_async_session)]
 ):
 	"""
 	Получение списка всех оценок дня. Доступно только для is_staff-пользователей.
 	"""
 	if not current_user.is_staff:
 		raise PermissionsError()
-	return await crud_day_ratings.get_day_ratings()
+	return await crud_day_ratings.get_day_ratings(db=db)
 
 
 @router.get("/me", response_model=list[schemas.DayRating])
 async def read_day_ratings_me(
 	current_user: Annotated[schemas.User, Depends(get_current_active_user)],
-	filtering: Annotated[dict[str, bool], Depends(get_day_rating_filters)]
+	filtering: Annotated[dict[str, bool], Depends(get_day_rating_filters)],
+	db: Annotated[AsyncSession, Depends(get_async_session)]
 ):
 	"""
 	Получение пользователем списка оценок дня.
@@ -70,14 +80,15 @@ async def read_day_ratings_me(
 	Если параметр в фильтре равен True, то делается фильтрация только по тем оценкам, где этот
 	оценочный параметр ЗАПОЛНЕН (а не равен True)
 	"""
-	return await crud_day_ratings.get_day_ratings_me(current_user, filtering)
+	return await crud_day_ratings.get_day_ratings_me(current_user, filtering, db=db)
 
 
 @router.put("/user/{user_id}", response_model=schemas.DayRating)
 async def update_day_rating(
+	current_user: Annotated[schemas.User, Depends(get_current_active_user)],
 	current_day_rating: Annotated[schemas.DayRating, Depends(get_day_rating)],
 	day_rating: Annotated[schemas.DayRatingUpdate, Body(embed=True, title="Updated day rating")],
-	current_user: Annotated[schemas.User, Depends(get_current_active_user)]
+	db: Annotated[AsyncSession, Depends(get_async_session)]
 ):
 	"""
 	Обновление оценки дня пользователем. Доступно только для создателя оценки.
@@ -93,7 +104,7 @@ async def update_day_rating(
 		needed_params.remove("user_id")
 		raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
 							detail=f"Day rating must contains at least one of rating params {needed_params}")
-	return await crud_day_ratings.update_day_rating(current_day_rating, day_rating)
+	return await crud_day_ratings.update_day_rating(current_day_rating, day_rating, db=db)
 
 
 @router.get("/user/{user_id}", response_model=schemas.DayRating)
@@ -112,11 +123,12 @@ async def read_day_rating(
 @router.delete("/user/{user_id}", response_model=schemas.DayRating)
 async def delete_day_rating(
 	current_user: Annotated[schemas.User, Depends(get_current_active_user)],
-	current_day_rating: Annotated[schemas.DayRating, Depends(get_day_rating)]
+	current_day_rating: Annotated[schemas.DayRating, Depends(get_day_rating)],
+	db: Annotated[AsyncSession, Depends(get_async_session)]
 ):
 	"""
 	Удаление оценки дня (см. put- и get-методы по этому маршруту)
 	"""
 	if current_user.id != current_day_rating.user_id:
 		raise PermissionsError()
-	return await crud_day_ratings.delete_day_rating(current_day_rating)
+	return await crud_day_ratings.delete_day_rating(current_day_rating, db=db)

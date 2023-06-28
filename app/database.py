@@ -1,24 +1,19 @@
 from sqlalchemy.orm import declarative_base, sessionmaker
-from sqlalchemy import create_engine
 import config
-import databases
 from psycopg2 import connect
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
 SQLALCHEMY_DATABASE_URL = config.DATABASE_URL
 
-engine = create_engine(
+engine = create_async_engine(
     SQLALCHEMY_DATABASE_URL
 )
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+async_session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 Base = declarative_base()
 
-
-# db connection instance (async mode)
-db = databases.Database(url=config.DATABASE_URL)
-
-# db connection instance (sync mode)
+# db connection instance (sync mode, using while starting app)
 sync_db = connect(
     **config.DB_PARAMS
 )
-
