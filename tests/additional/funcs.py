@@ -2,12 +2,11 @@ import datetime
 from typing import Any
 
 from httpx import AsyncClient, Response
-from sqlalchemy import update, select
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.users import User, users
-from app.models.day_ratings import DayRating, day_ratings
-from app.utils import sa_object_to_dict
+from app.models.users import User
+from app.models.day_ratings import DayRating
 
 
 async def change_user_params(
@@ -23,13 +22,13 @@ async def change_user_params(
 	queries = []
 
 	if disabled is not None:
-		query = update(User).where(users.c.id == user_id).values(
+		query = update(User).where(User.id == user_id).values(
 			disabled=disabled
 		)
 		queries.append(query)
 
 	if is_staff is not None:
-		query = update(User).where(users.c.id == user_id).values(
+		query = update(User).where(User.id == user_id).values(
 			is_staff=is_staff
 		)
 		queries.append(query)
@@ -201,8 +200,8 @@ async def change_day_rating_params(
 	if isinstance(date, str):
 		date = datetime.date.fromisoformat(date)
 	query = update(DayRating).where(
-		(day_ratings.c.user_id == user_id) &
-		(day_ratings.c.date == date)
+		(DayRating.user_id == user_id) &
+		(DayRating.date == date)
 	).values(**kwargs)
 
 	await sa_session.execute(query)

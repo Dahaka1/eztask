@@ -162,4 +162,3 @@ async def day_ratings_rud_test(
 			raise AttributeError
 
 	return response_404, response_invalid_user_id, response_invalid_date, response_permissions_error
-

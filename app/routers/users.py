@@ -9,7 +9,7 @@ from ..crud import crud_users
 from ..dependencies import get_async_session
 from ..dependencies import get_current_active_user, get_user_id
 from ..exceptions import PermissionsError
-from ..models.users import User, users
+from ..models.users import User
 
 router = APIRouter(
 	prefix="/users",
@@ -40,7 +40,7 @@ async def create_user(
 	"""
 	Регистрация пользователя по email.
 	"""
-	query = select(User).where(users.c.email == user.email)
+	query = select(User).where(User.email == user.email)
 	result = await db.execute(query)
 	existing_user = result.scalar()
 	if existing_user:

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, select, Table
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import schemas, utils
@@ -33,7 +33,7 @@ class User(Base):
 		"""
 		Поиск пользователя по email.
 		"""
-		query = select(User).where(users.c.email == email)
+		query = select(User).where(User.email == email)
 		result = await db.execute(query)
 		user: User | None = result.scalar()
 		if user:
@@ -72,6 +72,3 @@ class User(Base):
 			return False
 		return True
 
-
-# sa table instance for using with db queries
-users: Table = User.__table__

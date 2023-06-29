@@ -5,7 +5,7 @@ from sqlalchemy import select, insert, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import schemas
-from ..models.notes import Note, notes
+from ..models.notes import Note
 from ..static.enums import NoteTypeEnumDB
 from ..utils import sa_objects_dicts_list, convert_query_enums
 
@@ -14,7 +14,7 @@ async def get_notes(db: AsyncSession):
 	"""
 	Получение всех заметок из БД.
 	"""
-	query = select(Note).order_by(notes.c.created_at)
+	query = select(Note).order_by(Note.created_at)
 	result = await db.execute(query)
 	return sa_objects_dicts_list(result.scalars().all())
 
@@ -60,9 +60,9 @@ async def get_user_notes(user: schemas.User, filtering_params: tuple, db: AsyncS
 	)
 
 	query = select(Note).where(
-		(notes.c.date >= date.today()) &
-		(notes.c.user_id == user.id)
-	).order_by(notes.c.date)  # std sorting/filtering params
+		(Note.date >= date.today()) &
+		(Note.user_id == user.id)
+	).order_by(Note.date)  # std sorting/filtering params
 
 	result = await db.execute(query)
 	notes_list = sa_objects_dicts_list(result.scalars().all())
@@ -92,7 +92,7 @@ async def update_note(current_note: schemas.Note, updated_note: schemas.NoteUpda
 		case NoteTypeEnumDB.task.value:
 			if current_params["completed"] is None:
 				current_params["completed"] = current_note.completed or False
-	query = update(Note).where(notes.c.id == current_note.id).values(**current_params)
+	query = update(Note).where(Note.id == current_note.id).values(**current_params)
 	await db.execute(query)
 	await db.commit()
 
@@ -105,7 +105,7 @@ async def delete_note(current_note: schemas.Note, db: AsyncSession):
 	"""
 	Удаление заметки. Возвращает pydantic-объект удаленной заметки.
 	"""
-	query = delete(Note).where(notes.c.id == current_note.id)
+	query = delete(Note).where(Note.id == current_note.id)
 	await db.execute(query)
 	await db.commit()
 

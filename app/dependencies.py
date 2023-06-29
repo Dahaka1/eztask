@@ -12,9 +12,9 @@ import config
 from . import schemas
 from .database import async_session_maker
 from .exceptions import CredentialsException
-from .models.day_ratings import DayRating, day_ratings
-from .models.notes import Note, notes
-from .models.users import User, users
+from .models.day_ratings import DayRating
+from .models.notes import Note
+from .models.users import User
 from .utils import sa_object_to_dict
 
 # dependency that expects for token from user
@@ -70,7 +70,7 @@ async def get_user_id(
 	Возвращает ИД.
 	"""
 	result = await db.execute(
-		select(User).where(users.c.id == user_id)
+		select(User).where(User.id == user_id)
 	)
 	user_db = result.scalar()
 	if user_db is None:
@@ -87,7 +87,7 @@ async def get_note(
 	Возвращает pydantic-объект заметки.
 	"""
 	result = await db.execute(
-		select(Note).where(notes.c.id == note_id)
+		select(Note).where(Note.id == note_id)
 	)
 	note = result.scalar()
 	if note is None:
@@ -107,8 +107,8 @@ async def get_day_rating(
 	"""
 	result = await db.execute(
 		select(DayRating).where(
-			(day_ratings.c.user_id == user_id) &
-			(day_ratings.c.date == date)
+			(DayRating.user_id == user_id) &
+			(DayRating.date == date)
 		)
 	)
 	day_rating = result.scalar()

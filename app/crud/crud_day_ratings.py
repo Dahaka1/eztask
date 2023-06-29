@@ -5,7 +5,7 @@ from sqlalchemy import insert, select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import schemas
-from ..models.day_ratings import DayRating, day_ratings
+from ..models.day_ratings import DayRating
 from ..utils import sa_objects_dicts_list
 
 
@@ -31,7 +31,7 @@ async def get_day_ratings(db: AsyncSession):
 	"""
 	Получение всех оценок дня.
 	"""
-	query = select(DayRating).order_by(day_ratings.c.date)
+	query = select(DayRating).order_by(DayRating.date)
 	result = await db.execute(query)
 	return sa_objects_dicts_list(result.scalars().all())
 
@@ -43,7 +43,7 @@ async def get_day_ratings_me(current_user: schemas.User, filtering_params: dict[
 	Если параметр в фильтре равен True, то делается фильтрация только по тем оценкам, где этот
 	оценочный параметр ЗАПОЛНЕН (а не равен True)
 	"""
-	query = select(DayRating).where(day_ratings.c.user_id == current_user.id).order_by(day_ratings.c.date)
+	query = select(DayRating).where(DayRating.user_id == current_user.id).order_by(DayRating.date)
 	result = await db.execute(query)
 	user_day_ratings = sa_objects_dicts_list(result.scalars().all())
 	if not any(filtering_params.values()):
@@ -71,8 +71,8 @@ async def update_day_rating(current_day_rating: schemas.DayRating,
 			current_day_rating_dict[key] = val
 
 	query = update(DayRating).where(
-		(day_ratings.c.user_id == current_day_rating.user_id) &
-		(day_ratings.c.date == current_day_rating.date)
+		(DayRating.user_id == current_day_rating.user_id) &
+		(DayRating.date == current_day_rating.date)
 	).values(
 		**current_day_rating_dict
 	)
@@ -91,8 +91,8 @@ async def delete_day_rating(day_rating: schemas.DayRating, db: AsyncSession):
 	Удаление оценки дня.
 	"""
 	query = delete(DayRating).where(
-		(day_ratings.c.user_id == day_rating.user_id) &
-		(day_ratings.c.date == day_rating.date)
+		(DayRating.user_id == day_rating.user_id) &
+		(DayRating.date == day_rating.date)
 	)
 	await db.execute(query)
 	await db.commit()

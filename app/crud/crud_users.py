@@ -3,7 +3,7 @@ from sqlalchemy import select, insert, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import schemas
-from ..models.users import User, users
+from ..models.users import User
 from ..utils import get_password_hash
 from ..utils import sa_objects_dicts_list, sa_object_to_dict
 
@@ -12,7 +12,7 @@ async def get_users(db: AsyncSession):
 	"""
 	:return: Возвращает список всех пользователей (pydantic-модели)
 	"""
-	query = select(User).order_by(users.c.registered_at)
+	query = select(User).order_by(User.registered_at)
 	result = await db.execute(query)
 	return sa_objects_dicts_list(result.scalars().all())
 
@@ -48,7 +48,7 @@ async def update_user(user: schemas.UserUpdate, user_id: int, action_by: schemas
 	"""
 	:return: Возвращает словарь с данными обновленного пользователя.
 	"""
-	query = select(User).where(users.c.id == user_id)
+	query = select(User).where(User.id == user_id)
 	result = await db.execute(query)
 	user_db = sa_object_to_dict(result.scalar())
 	for key, val in user.dict().items():
@@ -61,7 +61,7 @@ async def update_user(user: schemas.UserUpdate, user_id: int, action_by: schemas
 					user_db["hashed_password"] = hashed_password
 			else:
 				user_db[key] = val
-	query = update(User).where(users.c.id == user_id).values(**user_db)
+	query = update(User).where(User.id == user_id).values(**user_db)
 	await db.execute(query)
 	await db.commit()
 
@@ -75,7 +75,7 @@ async def delete_user(user_id: int, action_by: schemas.User, db: AsyncSession) -
 	"""
 	:return: Возвращает ИД удаленного пользователя.
 	"""
-	query = delete(User).where(users.c.id == user_id)
+	query = delete(User).where(User.id == user_id)
 	await db.execute(query)
 	await db.commit()
 

@@ -1,7 +1,7 @@
 from datetime import date
 
 from sqlalchemy import Column, Integer, String, Date, ForeignKey, Enum, Boolean, DateTime
-from sqlalchemy import select, Table
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database import Base
@@ -44,7 +44,7 @@ class Note(Base):
 		Вся вспомогательная информация по параметрам: см. 'static.enums'
 		"""
 		if params.period != NotesPeriodEnum.upcoming.value:
-			notes_list = await db.execute(select(Note).order_by(notes.c.date))
+			notes_list = await db.execute(select(Note).order_by(Note.date))
 			notes_list = sa_objects_dicts_list(notes_list.scalars().all())
 
 		match params.period:
@@ -70,7 +70,3 @@ class Note(Base):
 							notes_list = filter(lambda note: note["completed"] is False, notes_list)
 
 		return list(notes_list)
-
-
-# sa table instance for using with db queries
-notes: Table = Note.__table__

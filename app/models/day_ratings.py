@@ -1,7 +1,7 @@
 import datetime
 from typing import Optional
 
-from sqlalchemy import Table, Column, Integer, Boolean, Date, ForeignKey, PrimaryKeyConstraint, select
+from sqlalchemy import Column, Integer, Boolean, Date, ForeignKey, PrimaryKeyConstraint, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import schemas
@@ -34,12 +34,8 @@ class DayRating(Base):
 	@staticmethod
 	async def get_day_rating(user_id: int, date: datetime.date, db: AsyncSession) -> Optional[schemas.DayRating]:
 		query = select(DayRating).where(
-				(day_ratings.c.date == date) &
-				(day_ratings.c.user_id == user_id)
+				(DayRating.date == date) &
+				(DayRating.user_id == user_id)
 			)
 		existing_day_rating = await db.execute(query)
 		return existing_day_rating.scalar()
-
-
-# sa table instance for using with db queries
-day_ratings: Table = DayRating.__table__

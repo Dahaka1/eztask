@@ -3,7 +3,7 @@ from httpx import AsyncClient
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.users import User, users
+from app.models.users import User
 from .additional.funcs import convert_obj_creating_time
 from .additional.fills import create_user
 
@@ -22,7 +22,7 @@ class TestUsers:
 		Пользователь должен находиться в списке пользователей.
 		"""
 
-		query = update(User).where(users.c.id == self.id).values(
+		query = update(User).where(User.id == self.id).values(
 			is_staff=True
 		)
 		await session.execute(query)
