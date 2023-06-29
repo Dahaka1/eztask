@@ -38,7 +38,7 @@ async def get_current_user(
 	"""
 	try:
 		payload = jwt.decode(token=token, key=config.JWT_SECRET_KEY, algorithms=[config.JWT_SIGN_ALGORITHM])
-		email: str | None = payload.get("sub")  # sub is std jwt token data param
+		email: str = payload.get("sub")  # sub is std jwt token data param
 		if email is None:
 			raise CredentialsException()
 		token_data = schemas.TokenData(email=email)

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Any
 
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -36,12 +36,12 @@ class User(Base):
 		query = select(User).where(User.email == email)
 		result = await db.execute(query)
 		user: User | None = result.scalar()
-		if user:
-			user: dict = sa_object_to_dict(user)
-			return schemas.UserInDB(**user)
+		if isinstance(user, User):
+			user_dict: dict[str, Any] = sa_object_to_dict(user)
+			return schemas.UserInDB(**user_dict)
 
 	@staticmethod
-	async def authenticate_user(db: AsyncSession, email: str, password: str) -> bool | schemas.UserInDB:
+	async def authenticate_user(db: AsyncSession, email: str, password: str) -> None | schemas.UserInDB:
 		"""
 		Аутентификация пользователя: если пользователя с таким email не существует или
 		был введен неправильный пароль - возвращает False; иначе возвращает pydantic-модель пользователя
@@ -49,9 +49,9 @@ class User(Base):
 		"""
 		user = await User.get_user_by_email(db=db, email=email)
 		if not user:
-			return False
+			return
 		if not utils.verify_password(password, user.hashed_password):
-			return False
+			return
 		return user
 
 	@staticmethod
