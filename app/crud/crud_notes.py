@@ -5,7 +5,7 @@ from loguru import logger
 from ..static.enums import NoteTypeEnumDB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, insert, update, delete
-from .. utils import sa_objects_dicts_list
+from .. utils import sa_objects_dicts_list, convert_query_enums
 
 
 async def get_notes(db: AsyncSession):
@@ -53,18 +53,9 @@ async def get_user_notes(user: schemas.User, filtering_params: tuple, db: AsyncS
 	Далее проверяются переданные параметры запроса. Если они есть - поэтапно обрабатываются методом
 	 Note.handle_get_params.
 	"""
-	default_params = schemas.GetNotesParams()
-
-	sorting, period, type_, completed = filtering_params
-
-	if sorting is not None:
-		default_params.sorting = sorting
-	if period is not None:
-		default_params.period = period
-	if type_ is not None:
-		default_params.type = type_
-	if completed is not None:
-		default_params.completed = completed
+	default_params = convert_query_enums(
+		params_schema=schemas.GetNotesParams(), params=filtering_params
+	)
 
 	query = select(Note).where(
 		(notes.c.date >= date.today()) &
@@ -74,7 +65,7 @@ async def get_user_notes(user: schemas.User, filtering_params: tuple, db: AsyncS
 	result = await db.execute(query)
 	notes_list = sa_objects_dicts_list(result.scalars().all())
 
-	if filtering_params != schemas.GetNotesParams():
+	if default_params != schemas.GetNotesParams():
 		notes_list = await Note.handle_get_params(notes_list, default_params, db=db)
 
 	return notes_list

@@ -43,19 +43,19 @@ class Note(Base):
 
 		Вся вспомогательная информация по параметрам: см. 'static.enums'
 		"""
-		if params.period.value != NotesPeriodEnum.upcoming.value:
+		if params.period != NotesPeriodEnum.upcoming.value:
 			notes_list = await db.execute(select(Note).order_by(notes.c.date))
 			notes_list = sa_objects_dicts_list(notes_list.scalars().all())
 
-		match params.period.value:
+		match params.period:
 			case NotesPeriodEnum.past.value:
 				notes_list = filter(lambda note: note["date"] < date.today(), notes_list)
 
-		match params.sorting.value:
+		match params.sorting:
 			case NotesOrderByEnum.date_desc.value:
 				notes_list = sorted(notes_list, key=lambda note: note["date"], reverse=True)
 
-		match params.type.value:
+		match params.type:
 			case NoteTypeEnum.note.value:
 				notes_list = filter(lambda note: note["note_type"].value == NoteTypeEnum.note.value, notes_list)
 			case NoteTypeEnum.task.value:
@@ -63,7 +63,7 @@ class Note(Base):
 
 				# filter by completing can be applied only when getting notes with type task
 				if not params.completed is None:
-					match params.completed.value:
+					match params.completed:
 						case NotesCompletedEnum.completed.value:
 							notes_list = filter(lambda note: note["completed"] is True, notes_list)
 						case NotesCompletedEnum.non_completed.value:

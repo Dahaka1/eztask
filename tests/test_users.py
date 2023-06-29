@@ -4,7 +4,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.users import User, users
 from sqlalchemy import update
 from .funcs import create_user, convert_obj_creating_time
-import datetime
 
 
 @pytest.mark.usefixtures("generate_user_with_token")

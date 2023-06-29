@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Body, HTTPException, status, Path
+from fastapi import APIRouter, Depends, Body, HTTPException, status, Query
 from .. import schemas
 from ..dependencies import get_current_active_user, get_note, get_async_session
 from typing import Annotated
@@ -53,10 +53,10 @@ async def create_note(
 async def read_notes_me(
 	current_user: Annotated[schemas.User, Depends(get_current_active_user)],
 	db: Annotated[AsyncSession, Depends(get_async_session)],
-	sorting: Annotated[enums.NotesOrderByEnum, Path(example="-date")] = None,
-	period: Annotated[enums.NotesPeriodEnum, Path(example="past")] = None,
-	type_: Annotated[enums.NoteTypeEnum, Path(example="task", alias="type")] = None,
-	completed: Annotated[enums.NotesCompletedEnum, Path(example=True)] = None
+	sorting: Annotated[enums.NotesOrderByEnum, Query(example="-date")] = None,
+	period: Annotated[enums.NotesPeriodEnum, Query(example="past")] = None,
+	type_: Annotated[enums.NoteTypeEnum, Query(example="task", alias="type")] = None,
+	completed: Annotated[bool, Query(example=True)] = None
 ):
 	"""
 	Метод возвращает все заметки пользователя.

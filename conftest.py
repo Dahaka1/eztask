@@ -92,7 +92,7 @@ async def generate_user_with_token(request):
 
 	В каждом тесте (функции) можно менять свободно данные, ибо scope='function'.
 	"""
-	request.cls.email = f"autotest_{random.randrange(100)}@gmail.com"
+	request.cls.email = f"autotest_{random.randrange(10000)}@gmail.com"
 	request.cls.password = str(random.randrange(10_000_000, 20_000_000))
 	request.cls.first_name = random.choice(
 		("Andrew", "Petr", "Ivan")
@@ -102,7 +102,8 @@ async def generate_user_with_token(request):
 			request.cls.email,
 			request.cls.password,
 			request.cls.first_name,
-			async_client=ac
+			async_client=ac,
+			raise_error=True
 		)
 	token = user_and_token_data.get("token")
 	user_id = user_and_token_data.get("id")
