@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, EmailStr
 import datetime
+from typing import Optional
+
+from pydantic import BaseModel, Field, EmailStr
+
 from .static.enums import NoteTypeEnumDB, NotesCompletedEnum, \
 	NotesOrderByEnum, NotesPeriodEnum, NoteTypeEnum
-from typing import Optional
 
 
 class Token(BaseModel):

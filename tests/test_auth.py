@@ -1,10 +1,11 @@
 import os
 
-from httpx import AsyncClient
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
+from httpx import AsyncClient
 from jose import jwt
-from .funcs import change_user_params, endpoint_autotest, convert_obj_creating_time
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from .additional.funcs import change_user_params, endpoint_autotest, convert_obj_creating_time
 
 
 @pytest.mark.usefixtures("generate_user", "get_jwt_token_params")

@@ -1,7 +1,11 @@
-from sqlalchemy import Table, Column, Integer, Boolean, Date, ForeignKey, PrimaryKeyConstraint
-from sqlalchemy.orm import relationship
-from ..database import Base
+import datetime
+from typing import Optional
+
+from sqlalchemy import Table, Column, Integer, Boolean, Date, ForeignKey, PrimaryKeyConstraint, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from .. import schemas
+from ..database import Base
 
 
 class DayRating(Base):
@@ -26,6 +30,15 @@ class DayRating(Base):
 		):
 			return False
 		return True
+
+	@staticmethod
+	async def get_day_rating(user_id: int, date: datetime.date, db: AsyncSession) -> Optional[schemas.DayRating]:
+		query = select(DayRating).where(
+				(day_ratings.c.date == date) &
+				(day_ratings.c.user_id == user_id)
+			)
+		existing_day_rating = await db.execute(query)
+		return existing_day_rating.scalar()
 
 
 # sa table instance for using with db queries

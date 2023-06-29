@@ -1,20 +1,21 @@
 import datetime
-from fastapi.security import OAuth2PasswordBearer
-from .exceptions import CredentialsException
-from fastapi import Depends, status, HTTPException, Path, Query
 from typing import Annotated
+from typing import AsyncGenerator
+
+from fastapi import Depends, status, HTTPException, Path, Query
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 import config
 from . import schemas
-from typing import AsyncGenerator
 from .database import async_session_maker
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from .models.users import User, users
-from .models.notes import Note, notes
+from .exceptions import CredentialsException
 from .models.day_ratings import DayRating, day_ratings
+from .models.notes import Note, notes
+from .models.users import User, users
 from .utils import sa_object_to_dict
-
 
 # dependency that expects for token from user
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")

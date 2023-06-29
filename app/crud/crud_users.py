@@ -1,9 +1,10 @@
-from .. import schemas
 from loguru import logger
-from ..utils import get_password_hash
-from sqlalchemy.ext.asyncio import AsyncSession
-from ..models.users import User, users
 from sqlalchemy import select, insert, update, delete
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from .. import schemas
+from ..models.users import User, users
+from ..utils import get_password_hash
 from ..utils import sa_objects_dicts_list, sa_object_to_dict
 
 

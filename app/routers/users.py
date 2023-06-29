@@ -1,14 +1,15 @@
-from fastapi import APIRouter, Body, HTTPException, status, Depends
-from .. import schemas
-from ..models.users import User, users
 from typing import Annotated
-from ..dependencies import get_current_active_user, get_user_id
-from ..exceptions import PermissionsError
+
+from fastapi import APIRouter, Body, HTTPException, status, Depends
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from .. import schemas
 from ..crud import crud_users
 from ..dependencies import get_async_session
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-
+from ..dependencies import get_current_active_user, get_user_id
+from ..exceptions import PermissionsError
+from ..models.users import User, users
 
 router = APIRouter(
 	prefix="/users",

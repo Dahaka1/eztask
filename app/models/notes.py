@@ -1,13 +1,13 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey, Enum, Boolean, DateTime
-from ..database import Base
-from sqlalchemy.orm import relationship
-from ..schemas import GetNotesParams
 from datetime import date
-from ..static.enums import NoteTypeEnumDB, NoteTypeEnum, NotesCompletedEnum, NotesOrderByEnum, NotesPeriodEnum
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, Table
-from ..utils import sa_objects_dicts_list
 
+from sqlalchemy import Column, Integer, String, Date, ForeignKey, Enum, Boolean, DateTime
+from sqlalchemy import select, Table
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..database import Base
+from ..schemas import GetNotesParams
+from ..static.enums import NoteTypeEnumDB, NoteTypeEnum, NotesCompletedEnum, NotesOrderByEnum, NotesPeriodEnum
+from ..utils import sa_objects_dicts_list
 
 note_type_enum = Enum(
 	NoteTypeEnumDB,

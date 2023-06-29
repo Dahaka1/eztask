@@ -1,9 +1,9 @@
 from fastapi import FastAPI, APIRouter
-from .routers import users, auth, notes, day_ratings
-import config
 from loguru import logger
-from config import LOGGING_PARAMS
 
+import config
+from config import LOGGING_PARAMS
+from .routers import users, auth, notes, day_ratings
 
 app = FastAPI(
 	openapi_url=config.OPENAPI_URL,

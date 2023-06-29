@@ -1,13 +1,14 @@
-from fastapi import APIRouter, Depends, Body, HTTPException, status, Query
-from .. import schemas
-from ..dependencies import get_current_active_user, get_note, get_async_session
-from typing import Annotated
-from ..crud import crud_notes
 from datetime import date
-from ..exceptions import PermissionsError
-from sqlalchemy.ext.asyncio import AsyncSession
-from ..static import enums
+from typing import Annotated
 
+from fastapi import APIRouter, Depends, Body, HTTPException, status, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from .. import schemas
+from ..crud import crud_notes
+from ..dependencies import get_current_active_user, get_note, get_async_session
+from ..exceptions import PermissionsError
+from ..static import enums
 
 router = APIRouter(
 	prefix="/notes",

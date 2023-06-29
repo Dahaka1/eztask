@@ -1,14 +1,15 @@
-from fastapi import APIRouter, HTTPException, status
-from .. import schemas
 from typing import Annotated
+
+from fastapi import APIRouter, HTTPException, status
 from fastapi import Form, Depends
-from ..models.users import User
-from ..exceptions import CredentialsException
-from .. import utils
 from loguru import logger
-from ..dependencies import get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from .. import schemas
+from .. import utils
+from ..dependencies import get_async_session
+from ..exceptions import CredentialsException
+from ..models.users import User
 
 router = APIRouter(
 	prefix="/token",

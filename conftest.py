@@ -10,14 +10,11 @@ from sqlalchemy.pool import NullPool
 from app.database import Base
 from app.dependencies import get_async_session
 from sqlalchemy.orm import sessionmaker
-from app.models.users import User
-from app.models.day_ratings import DayRating
-from app.models.notes import Note  # import models for Base metadata updating
 import pytest
 from app.main import app
 from typing import AsyncGenerator
 import asyncio
-from tests.funcs import create_user
+from tests.additional.fills import create_user
 
 engine_test = create_async_engine(DATABASE_URL_TEST, poolclass=NullPool)
 async_session_maker = sessionmaker(engine_test, class_=AsyncSession, expire_on_commit=False)

@@ -1,8 +1,10 @@
-import config
 from datetime import timedelta, datetime
-from jose import jwt
-from .database import Base
 from typing import Any
+
+from jose import jwt
+
+import config
+from .database import Base
 from .schemas import GetNotesParams
 from .static import enums
 

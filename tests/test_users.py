@@ -1,9 +1,11 @@
-from httpx import AsyncClient
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.users import User, users
+from httpx import AsyncClient
 from sqlalchemy import update
-from .funcs import create_user, convert_obj_creating_time
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.users import User, users
+from .additional.funcs import convert_obj_creating_time
+from .additional.fills import create_user
 
 
 @pytest.mark.usefixtures("generate_user_with_token")

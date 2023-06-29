@@ -1,9 +1,10 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, select, Table
-from ..database import Base
-from sqlalchemy.orm import relationship
-from .. import schemas, utils
 from typing import Optional
+
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, select, Table
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from .. import schemas, utils
+from ..database import Base
 from ..utils import sa_object_to_dict
 
 

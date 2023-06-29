@@ -1,8 +1,10 @@
+import os
+
 from loguru import logger
+
 import config
 from .database import sync_db
 from .static.sql_queries import GET_ALL_TABLES
-import os
 
 
 def database_init() -> None:

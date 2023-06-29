@@ -1,11 +1,13 @@
+from datetime import date
+
+from loguru import logger
+from sqlalchemy import select, insert, update, delete
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from .. import schemas
 from ..models.notes import Note, notes
-from datetime import date
-from loguru import logger
 from ..static.enums import NoteTypeEnumDB
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, insert, update, delete
-from .. utils import sa_objects_dicts_list, convert_query_enums
+from ..utils import sa_objects_dicts_list, convert_query_enums
 
 
 async def get_notes(db: AsyncSession):

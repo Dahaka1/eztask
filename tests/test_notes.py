@@ -1,11 +1,14 @@
+import datetime
+
 import pytest
 from httpx import AsyncClient
-import datetime
-from .funcs import create_random_note, change_user_params, convert_obj_creating_time, exclude_datetime_creating, \
-	create_random_notes, get_obj_by_id
-from .subtests import notes_rud_test
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.static import enums
+from .additional.funcs import change_user_params, convert_obj_creating_time, exclude_datetime_creating, \
+	get_obj_by_id
+from .additional.subtests import notes_rud_test
+from .additional.fills import create_random_note, create_random_notes
 
 
 @pytest.mark.usefixtures("generate_user_with_token")
@@ -271,12 +274,18 @@ class TestNotes:
 	async def test_read_note_errors(self, async_test_client: AsyncClient):
 		"""
 		Несуществующий/инвалидный ИД заметки или запрос не от создателя заметки.
+
+		См. 'Notes_rud_test'
 		"""
-		await notes_rud_test(
+		response_404, response_invalid_id, response_permissions_error = await notes_rud_test(
 			async_client=async_test_client,
 			current_user_headers=self.headers,
 			method="get"
 		)
+
+		assert response_404.status_code == 404
+		assert response_invalid_id.status_code == 422
+		assert response_permissions_error.status_code == 403
 
 	async def test_update_note(self, async_test_client: AsyncClient, session: AsyncSession):
 		"""
@@ -304,7 +313,19 @@ class TestNotes:
 		"""
 		Проверяются невалидные данные.
 		Плюс нельзя установить дату заметки ранее текущей.
+
+		См. 'Notes_rud_test'.
 		"""
+		response_404, response_invalid_id, response_permissions_error = await notes_rud_test(
+			async_client=async_test_client,
+			current_user_headers=self.headers,
+			method="put"
+		)
+
+		assert response_404.status_code == 404
+		assert response_invalid_id.status_code == 422
+		assert response_permissions_error.status_code == 403
+
 		note = await create_random_note(headers=self.headers, async_client=async_test_client,
 										raise_error=True, json=True)
 
@@ -344,3 +365,17 @@ class TestNotes:
 													headers=self.headers)
 
 		assert deleted_note_response.status_code == 404
+
+	async def test_delete_note_errors(self, async_test_client: AsyncClient):
+		"""
+		См. 'Notes_rud_test'
+		"""
+		response_404, response_invalid_id, response_permissions_error = await notes_rud_test(
+			async_client=async_test_client,
+			current_user_headers=self.headers,
+			method="delete"
+		)
+
+		assert response_404.status_code == 404
+		assert response_invalid_id.status_code == 422
+		assert response_permissions_error.status_code == 403

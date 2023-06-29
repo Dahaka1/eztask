@@ -1,15 +1,16 @@
-from fastapi import APIRouter, Depends, Body, HTTPException, status
-from .. import schemas
-from ..dependencies import get_current_active_user, get_day_rating, get_day_rating_filters
-from typing import Annotated
-from ..crud import crud_day_ratings
-from ..exceptions import PermissionsError
-from ..models.day_ratings import DayRating, day_ratings
-from ..dependencies import get_async_session
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 import datetime
+from typing import Annotated
 
+from fastapi import APIRouter, Depends, Body, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from .. import schemas
+from ..crud import crud_day_ratings
+from ..dependencies import get_async_session
+from ..dependencies import get_current_active_user, get_day_rating, get_day_rating_filters
+from ..exceptions import PermissionsError
+from ..models.day_ratings import DayRating
 
 router = APIRouter(
 	prefix="/day_ratings",
@@ -38,14 +39,12 @@ async def create_day_rating(
 		needed_params.remove("user_id")
 		raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
 							detail=f"Day rating must contains at least one of rating params {needed_params}")
-	existing_day_rating = await db.execute(
-		select(DayRating).where(
-			(day_ratings.c.date == datetime.date.today()) &
-			(day_ratings.c.user_id == day_rating.user_id)
-		)
-	)
-	existing_day_rating = existing_day_rating.scalar()
-	if existing_day_rating is not None:
+
+	day_rating_exists = await DayRating.get_day_rating(user_id=day_rating.user_id,
+													   date=datetime.date.today(),
+													   db=db)
+
+	if day_rating_exists is not None:
 		raise HTTPException(status_code=status.HTTP_409_CONFLICT,
 							detail=f"Day rating for date {datetime.date.today()} already exists. "
 								   f"Use the 'put'-method instead of 'post'")
@@ -78,7 +77,9 @@ async def read_day_ratings_me(
 	Параметры получаются в dependencies.get_day_rating_filters.
 
 	Если параметр в фильтре равен True, то делается фильтрация только по тем оценкам, где этот
-	оценочный параметр ЗАПОЛНЕН (а не равен True)
+	оценочный параметр ЗАПОЛНЕН (а не равен True).
+
+	Если понадобится, в дальнейшем можно добавить фильтрацию именно по значениям параметров.
 	"""
 	return await crud_day_ratings.get_day_ratings_me(current_user, filtering, db=db)
 
