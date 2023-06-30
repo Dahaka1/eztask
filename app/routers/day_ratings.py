@@ -2,6 +2,7 @@ import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Body, HTTPException, status
+from fastapi_cache.decorator import cache
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import schemas
@@ -10,6 +11,7 @@ from ..dependencies import get_async_session
 from ..dependencies import get_current_active_user, get_day_rating, get_day_rating_filters
 from ..exceptions import PermissionsError
 from ..models.day_ratings import DayRating
+from . import config
 
 router = APIRouter(
 	prefix="/day_ratings",
@@ -65,6 +67,7 @@ async def read_day_ratings(
 
 
 @router.get("/me", response_model=list[schemas.DayRating])
+@cache(expire=config.CACHE_EXPIRING_DEFAULT)
 async def read_day_ratings_me(
 	current_user: Annotated[schemas.User, Depends(get_current_active_user)],
 	filtering: Annotated[dict[str, bool], Depends(get_day_rating_filters)],

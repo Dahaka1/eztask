@@ -11,7 +11,7 @@ DB_PARAMS_TEST = {"user": os.environ.get("DB_USER_TEST"), "password": os.environ
 
 
 DATABASE_URL = "postgresql+asyncpg://%s:%s@%s:%s/%s" % tuple(DB_PARAMS.values())
-
+DATABASE_URL_SYNC = "postgresql://%s:%s@%s:%s/%s" % tuple(DB_PARAMS.values())  # for alembic
 DATABASE_URL_TEST = "postgresql+asyncpg://%s:%s@%s:%s/%s" % tuple(DB_PARAMS_TEST.values())
 
 
@@ -44,3 +44,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
 JWT_SIGN_ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+# redis params
+REDIS_HOST = f"redis://{os.environ.get('REDIS_HOST')}"
+REDIS_PORT = os.environ.get("REDIS_PORT")
+REDIS_URL = f"{REDIS_HOST}:{REDIS_PORT}"
+REDIS_CACHE_PREFIX = "eztask-cache"

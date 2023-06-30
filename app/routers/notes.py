@@ -2,6 +2,7 @@ from datetime import date
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Body, HTTPException, status, Query
+from fastapi_cache.decorator import cache
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import schemas
@@ -9,6 +10,7 @@ from ..crud import crud_notes
 from ..dependencies import get_current_active_user, get_note, get_async_session
 from ..exceptions import PermissionsError
 from ..static import enums
+from . import config
 
 router = APIRouter(
 	prefix="/notes",
@@ -51,6 +53,7 @@ async def create_note(
 
 
 @router.get("/me", response_model=list[schemas.Note])
+@cache(expire=config.CACHE_EXPIRING_DEFAULT)
 async def read_notes_me(
 	current_user: Annotated[schemas.User, Depends(get_current_active_user)],
 	db: Annotated[AsyncSession, Depends(get_async_session)],

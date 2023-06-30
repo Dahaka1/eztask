@@ -8,6 +8,10 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from config import DATABASE_URL_TEST, JWT_SIGN_ALGORITHM, JWT_SECRET_KEY
 from sqlalchemy.pool import NullPool
 from app.database import Base
+from app.models.polling import Polling, PollingString
+from app.models.users import User
+from app.models.notes import Note
+from app.models.day_ratings import DayRating
 from app.dependencies import get_async_session
 from sqlalchemy.orm import sessionmaker
 import pytest
@@ -15,6 +19,8 @@ from app.main import app
 from typing import AsyncGenerator
 import asyncio
 from tests.additional.fills import create_user
+from app import fastapi_cache_init, init_db_strings
+
 
 engine_test = create_async_engine(DATABASE_URL_TEST, poolclass=NullPool)
 async_session_maker = sessionmaker(engine_test, class_=AsyncSession, expire_on_commit=False)
@@ -36,14 +42,19 @@ async def session() -> AsyncGenerator[AsyncSession, None]:
 
 
 @pytest.fixture(autouse=True, scope='session')
-async def prepare_database():
+async def prepare_app():
 	"""
 	Перед запуском тестов создает сущности в БД. После тестов - удаляет
 	 (yield - специальный разделитель действий для фикстур pytest).
 	"""
 	async with engine_test.begin() as conn:
 		await conn.run_sync(Base.metadata.create_all)
+
+	await fastapi_cache_init()  # для работы кеширования при тестах
+	await init_db_strings(async_session_maker)
+
 	yield
+
 	async with engine_test.begin() as conn:
 		await conn.run_sync(Base.metadata.drop_all)
 

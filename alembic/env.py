@@ -20,10 +20,14 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 from app.database import Base
+from app.models.users import User
+from app.models.notes import Note
+from app.models.day_ratings import DayRating
+from app.models.polling import Polling, PollingString
 
 target_metadata = Base.metadata
 
-from config import DATABASE_URL
+from config import DATABASE_URL_SYNC
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -43,7 +47,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = DATABASE_URL
+    url = DATABASE_URL_SYNC
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -64,7 +68,7 @@ def run_migrations_online() -> None:
 
     """
     configuration = config.get_section(config.config_ini_section)
-    configuration["sqlalchemy.url"] = DATABASE_URL
+    configuration["sqlalchemy.url"] = DATABASE_URL_SYNC
     connectable = engine_from_config(
         configuration,
         prefix="sqlalchemy.",

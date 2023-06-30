@@ -71,4 +71,3 @@ class User(Base):
 		if not current_user.is_staff and current_user.id != user_id:
 			return False
 		return True
-

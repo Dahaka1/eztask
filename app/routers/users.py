@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Body, HTTPException, status, Depends
+from fastapi import APIRouter, Body, HTTPException, status, Depends, BackgroundTasks
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -50,11 +50,13 @@ async def create_user(
 
 @router.get("/me", response_model=schemas.User)
 async def read_users_me(
-	current_user: Annotated[schemas.User, Depends(get_current_active_user)]
+	current_user: Annotated[schemas.User, Depends(get_current_active_user)],
+	db: Annotated[AsyncSession, Depends(get_async_session)]
 ):
 	"""
 	Получение данных аккаунта пользователем после проверки его токена.
 	"""
+
 	return current_user
 
 
@@ -71,6 +73,7 @@ async def update_user(
 	- стафф-пользователь.
 	Права проверяются функцией check_user_permissions.
 	"""
+
 	if not User.check_user_permissions(current_user=current_user, user_id=user_id):
 		raise PermissionsError()
 	if any(user.dict().values()):

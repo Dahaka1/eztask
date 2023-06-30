@@ -2,7 +2,7 @@ import datetime
 from typing import Annotated
 from typing import AsyncGenerator
 
-from fastapi import Depends, status, HTTPException, Path, Query
+from fastapi import Depends, status, HTTPException, Path, Query, BackgroundTasks
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy import select
@@ -16,6 +16,8 @@ from .models.day_ratings import DayRating
 from .models.notes import Note
 from .models.users import User
 from .utils import sa_object_to_dict
+from . import tasks
+
 
 # dependency that expects for token from user
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -51,13 +53,22 @@ async def get_current_user(
 
 
 async def get_current_active_user(
-	current_user: Annotated[schemas.User, Depends(get_current_user)]
+	current_user: Annotated[schemas.User, Depends(get_current_user)],
+	background_tasks: BackgroundTasks,
+	db: Annotated[AsyncSession, Depends(get_async_session)]
 ) -> schemas.User:
 	"""
 	Функция проверяет, заблокирован ли пользователь, сделавший запрос.
+
+	А также запускает каскад проверки и формирования опросов для него.
 	"""
 	if current_user.disabled:
 		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Disabled user")
+
+	if not current_user.is_staff:
+		background_tasks.add_task(
+			tasks.initialize_user_polls, current_user, db
+		)
 	return current_user
 
 
@@ -134,3 +145,4 @@ async def get_day_rating_filters(
 		"health": health,
 		"next_day_expectations": next_day_expectations
 	}
+

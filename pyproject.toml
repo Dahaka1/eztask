@@ -3,3 +3,6 @@ pythonpath = [
     "."
 ]
 asyncio_mode = "auto"
+
+[mypy]
+ignore_missing_import = true # не работает почему-то

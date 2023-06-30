@@ -44,3 +44,21 @@ class NoteTypeEnumDB(Enum):
 	"""
 	note = "note"
 	task = "task"
+
+
+class PollingTypeEnum(Enum):
+	"""
+	Типы рандомных опроса для пользователя.
+
+	Примеры опросов:
+	- Note: "Вам помогают или помогли сегодня заметки?" (если по текущему дню они были);
+	- Task: "Сегодня получилось выполнить все задачи?" (если были);
+	- Health: "Ваше самочувствие сегодня удовлетворительное?";
+	- Next_Day_Expectations: "Завтра будет хороший день?";
+	- Mood: "Какое сегодня было настроение?".
+	"""
+	note = "note"
+	task = "task"
+	health = "health"
+	next_day_expectations = "next_day_expectations"
+	mood = "mood"

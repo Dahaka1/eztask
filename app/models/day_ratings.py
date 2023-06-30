@@ -14,7 +14,7 @@ class DayRating(Base):
 		PrimaryKeyConstraint("user_id", "date", name="user_date_pkey"),
 	)
 
-	user_id = Column(Integer, ForeignKey("users.id"))
+	user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"))
 	date = Column(Date)
 	notes = Column(Boolean, nullable=True)
 	mood = Column(Boolean, nullable=True)

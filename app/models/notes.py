@@ -1,4 +1,6 @@
+import datetime
 from datetime import date
+from typing import Any
 
 from sqlalchemy import Column, Integer, String, Date, ForeignKey, Enum, Boolean, DateTime
 from sqlalchemy import select
@@ -8,6 +10,7 @@ from ..database import Base
 from ..schemas import GetNotesParams
 from ..static.enums import NoteTypeEnumDB, NoteTypeEnum, NotesCompletedEnum, NotesOrderByEnum, NotesPeriodEnum
 from ..utils import sa_objects_dicts_list
+from .. import schemas
 
 note_type_enum = Enum(
 	NoteTypeEnumDB,
@@ -29,7 +32,7 @@ class Note(Base):
 	date = Column(Date)
 	created_at = Column(DateTime(timezone=True))
 	completed = Column(Boolean, nullable=True)  # it's null if note type is std note
-	user_id = Column(Integer, ForeignKey("users.id"))
+	user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"))
 
 	@staticmethod
 	async def handle_get_params(notes_list: list[dict], params: GetNotesParams, db: AsyncSession):
@@ -45,7 +48,9 @@ class Note(Base):
 		"""
 		if params.period != NotesPeriodEnum.upcoming.value:
 			notes_list = await db.execute(select(Note).order_by(Note.date))
-			notes_list = sa_objects_dicts_list(notes_list.scalars().all())
+			notes_list = sa_objects_dicts_list(
+				list(notes_list.scalars().all())
+			)
 
 		match params.period:
 			case NotesPeriodEnum.past.value:
@@ -70,3 +75,28 @@ class Note(Base):
 							notes_list = filter(lambda note: note["completed"] is False, notes_list)
 
 		return list(notes_list)
+
+	@staticmethod
+	async def get_user_notes(user: schemas.User,
+							 db: AsyncSession,
+							 notes_date: datetime = None,
+							 notes_type: str = NoteTypeEnumDB.note.value) -> \
+		list[dict[str, Any]]:
+		"""
+		Возвращает все заметки пользователя напрямую из БД.
+		По умолчанию с датой текущего дня и типом "note".
+		"""
+		if notes_type not in [note_type.value for note_type in NoteTypeEnumDB]:
+			raise AttributeError
+		if notes_date is None:
+			notes_date = datetime.date.today()
+		query = select(Note).where(
+			(Note.user_id == user.id) &
+			(Note.date == notes_date) &
+			(Note.note_type == notes_type)
+		)
+		result = await db.execute(query)
+
+		notes = list(result.scalars().all())
+
+		return sa_objects_dicts_list(notes)
