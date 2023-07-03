@@ -6,9 +6,13 @@ import config
 
 SQLALCHEMY_DATABASE_URL = config.DATABASE_URL
 
-engine = create_async_engine(
-    SQLALCHEMY_DATABASE_URL
-)
+try:
+    engine = create_async_engine(
+        SQLALCHEMY_DATABASE_URL
+    )
+except ValueError:
+    raise RuntimeError("Apparently, virtual environment variables wasn't successfully imported.\n\n"
+                       "If you use non-debug mode, check Docker-Compose configuration for environment-file reading.")
 
 async_session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 

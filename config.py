@@ -1,6 +1,13 @@
 import os
-
+import sys
 from passlib.context import CryptContext
+from dotenv import load_dotenv
+
+STARTING_APP_FROM_CMD_DEBUG_ARG = "--debug"
+
+if STARTING_APP_FROM_CMD_DEBUG_ARG in sys.argv:  # если запуск сервера из докера, используется .env-docker;
+	# если запуск локальный - можно использовать только debug-mode
+	load_dotenv()
 
 DB_PARAMS = {"user": os.environ.get("DB_USER"), "password": os.environ.get("DB_PASSWORD"),
 	"host": os.environ.get("DB_HOST"), "port": os.environ.get("DB_PORT"), "dbname": os.environ.get("DB_NAME")}
@@ -35,7 +42,9 @@ ALEMBIC_MIGRATION_CMDS = [
 # e.g. even if model field attributes was changed, it will automatically reflect in DB
 DB_AUTO_UPDATING = False
 
-STARTING_APP_CMD = "uvicorn app.main:app --reload"
+# starting params
+STARTING_APP_CMD_DEBUG_MODE = "uvicorn app.main:app --reload"
+STARTING_APP_CMD = "gunicorn app.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:8000"
 
 # users passwords hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
