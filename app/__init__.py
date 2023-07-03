@@ -6,6 +6,7 @@ import config
 from .database import sync_db
 from .static.sql_queries import GET_ALL_TABLES
 from .models.polling import PollingString
+from .crud.crud_polling import create_polling_strings
 
 from redis import asyncio as aioredis, ConnectionError
 from fastapi_cache import FastAPICache
@@ -69,4 +70,4 @@ async def init_db_strings(sa_session_maker: sessionmaker) -> None:
 	"""
 	async with sa_session_maker() as session:  # делать еще одну БД-сессию, конечно, не надо,
 		# но другого варианта получить ее здесь я не нашел(
-		await PollingString.fill_db(db=session)
+		await create_polling_strings(db=session)

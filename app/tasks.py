@@ -7,6 +7,7 @@ from .models.notes import Note
 from typing import Optional
 from loguru import logger
 import sqlalchemy.exc
+from .crud.crud_polling import create_polling
 
 
 def get_random_poll_type() -> PollingTypeEnum:
@@ -31,10 +32,13 @@ async def initialize_user_polls(user: schemas.User, db: AsyncSession) -> None:
 				if poll_string_id is not None:
 					break
 			try:
-				created_poll = await Polling.create(
+				created_poll = await create_polling(
 					db, poll_type=random_poll_type, polling_string_id=poll_string_id, user_id=user.id
 				)
-				logger.info(f"Polling ID {created_poll} was successfully generated!")
+
+				print(created_poll)
+
+				logger.info(f"Polling ID {created_poll} for user ID {user.id} was successfully created!")
 
 			except sqlalchemy.exc.IntegrityError:
 				# если юзер удалился - не создавать опрос

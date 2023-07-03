@@ -28,6 +28,10 @@ Base.metadata.bind = engine_test
 
 
 async def override_get_async_session() -> AsyncGenerator[AsyncSession, None]:
+	"""
+	Перезапись сессии БД в проекте.
+	Нужно для корректной работы тестов (иначе БД будет использоваться не тестовая).
+	"""
 	async with async_session_maker() as session:
 		yield session
 
@@ -46,6 +50,8 @@ async def prepare_app():
 	"""
 	Перед запуском тестов создает сущности в БД. После тестов - удаляет
 	 (yield - специальный разделитель действий для фикстур pytest).
+
+	 + инициализирует кэш и заливает нужные данные.
 	"""
 	async with engine_test.begin() as conn:
 		await conn.run_sync(Base.metadata.create_all)
@@ -62,7 +68,7 @@ async def prepare_app():
 @pytest.fixture(scope='session')
 def event_loop(request):
 	"""
-	Из asyncio документации (рекомендация)
+	Из asyncio документации (рекомендация).
 	"""
 	loop = asyncio.get_event_loop_policy().new_event_loop()
 	yield loop
@@ -81,7 +87,7 @@ async def async_test_client() -> AsyncGenerator[AsyncClient, None]:
 @pytest.fixture(scope="class")
 async def generate_user(request):
 	"""
-	Генерирует новые данные пользователя для каждого класса тестов (scope='class')
+	Генерирует новые данные пользователя для каждого класса тестов (scope='class').
 	"""
 	request.cls.email = f"autotest_{random.randrange(100)}@gmail.com"
 	request.cls.password = str(random.randrange(10_000_000, 20_000_000))
@@ -131,7 +137,7 @@ async def generate_user_with_token(request):
 @pytest.fixture
 async def get_jwt_token_params(request):
 	"""
-	Определяет секретный ключ и алгоритм JWT для тестирования относительно токена
+	Определяет секретный ключ и алгоритм JWT для тестирования относительно токена.
 	"""
 	request.cls.jwt_secret_key = JWT_SECRET_KEY
 	request.cls.jwt_algorithm = JWT_SIGN_ALGORITHM

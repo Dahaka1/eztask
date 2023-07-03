@@ -15,6 +15,7 @@ from .exceptions import CredentialsException
 from .models.day_ratings import DayRating
 from .models.notes import Note
 from .models.users import User
+from .models.polling import Polling
 from .utils import sa_object_to_dict
 from . import tasks
 
@@ -87,6 +88,23 @@ async def get_user_id(
 	if user_db is None:
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 	return user_id
+
+
+async def get_polling_id(
+	polling_id: Annotated[int, Path(ge=1)],
+	db: Annotated[AsyncSession, Depends(get_async_session)]
+) -> int:
+	"""
+	Функция проверяет, существует ли опрос с переданным ИД.
+	Возвращает ИД.
+	"""
+	result = await db.execute(
+		select(Polling).where(Polling.id == polling_id)
+	)
+	polling_db = result.scalar()
+	if polling_db is None:
+		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Polling not found")
+	return polling_id
 
 
 async def get_note(

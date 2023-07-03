@@ -85,6 +85,9 @@ class Note(Base):
 		"""
 		Возвращает все заметки пользователя напрямую из БД.
 		По умолчанию с датой текущего дня и типом "note".
+
+		Пишу здесь аналогичную CRUD 'get_user_notes' функцию, ибо здесь
+		 делаю другой sql-запрос, получаю заметки только по одному дню - экономия ресурсов.
 		"""
 		if notes_type not in [note_type.value for note_type in NoteTypeEnumDB]:
 			raise AttributeError

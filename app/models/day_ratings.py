@@ -23,6 +23,9 @@ class DayRating(Base):
 
 	@staticmethod
 	async def check_day_rating_params(day_rating: schemas.DayRatingBase):
+		"""
+		Проверяет, заполнено ли хоть одно bool-поле (опросное).
+		"""
 		if all(
 			(param is None for param in
 			 (day_rating.notes, day_rating.mood,
@@ -33,6 +36,9 @@ class DayRating(Base):
 
 	@staticmethod
 	async def get_day_rating(user_id: int, date: datetime.date, db: AsyncSession) -> Optional[schemas.DayRating]:
+		"""
+		Получение конкретной оценки дня.
+		"""
 		query = select(DayRating).where(
 				(DayRating.date == date) &
 				(DayRating.user_id == user_id)

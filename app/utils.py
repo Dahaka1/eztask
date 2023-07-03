@@ -1,5 +1,5 @@
 from datetime import timedelta, datetime
-from typing import Any
+from typing import Any, Sequence
 
 from jose import jwt
 
@@ -45,7 +45,7 @@ def sa_object_to_dict(sa_object: Base) -> dict[str, Any]:
 	return obj_dict
 
 
-def sa_objects_dicts_list(objects_list: list[Base]) -> list[dict[str, Any]]:
+def sa_objects_dicts_list(objects_list: Sequence[Base]) -> list[dict[str, Any]]:
 	"""
 	Возвращает pydantic-модели (словари) списка SA-объектов.
 	"""
