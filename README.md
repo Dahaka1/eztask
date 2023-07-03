@@ -34,7 +34,7 @@ Then:
 - Run commands _*docker-compose build*_ and _*docker-compose up*_ from directory;
 - Wait for the databases and application initialization processes (gunicorn server);
 - After completing just check the Swagger UI docs using url: _**localhost:8080/docs**_;
-- Test how it works! Recommended for using: _**'Postman'**_/_**Insomnia**_.
+- Test how it works! Recommended for using: _**'Postman'**_/_**'Insomnia'**_.
 
 # NOTICE
 - Authorization process doesn't work correctly on standard Swagger-docs app page, because by default Swagger authorization form includes _'**username**'_ and _'**password**'_ fields, but currently app use **email** instead of username. So, if you'll try to authorize by email using username field, you'll get an error, because authorization functions (checking form data, creating JWT Bearer Token, etc.) are expecting for _'**email**'_ form field.
@@ -65,8 +65,8 @@ Then:
 - Клонируйте репозиторий;
 - Запустите команды _*docker-compose build*_ и _*docker-compose up*_ из каталога;
 - Дождитесь завершения процессов инициализации баз данных и приложений (сервер gunicorn);
-- После завершения просто просмотрите документацию Swagger UI, используя url: _**localhost:8080/docs**_;
-- Проверьте, как это работает! Рекомендуется к использованию: _**"Postman"**_/_**Insomnia**_.
+- После завершения просто просмотрите документацию Swagger UI, используя url: _**'localhost:8080/docs'**_;
+- Проверьте, как это работает! Рекомендуется к использованию: _**"Postman"**_/_**'Insomnia'**_.
 
 # NOTICE
 - Процесс авторизации некорректно работает на стандартной странице приложения Swagger-docs, поскольку по умолчанию форма авторизации Swagger включает поля _'**имя пользователя**'_ и _'**пароль**'_, но в настоящее время приложение использует ** адрес электронной почты ** вместо имени пользователя. Итак, если вы попытаетесь авторизоваться по электронной почте, используя поле username, вы получите сообщение об ошибке, поскольку функции авторизации (проверка данных формы, создание токена на предъявителя JWT и т.д.) ожидают _'**email**'_ поле формы.
