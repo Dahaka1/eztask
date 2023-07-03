@@ -8,10 +8,6 @@ from ..database import Base
 from ..utils import sa_object_to_dict
 
 
-# TODO: после доработки функций с текущими моделями
-#  добавить оценку прошедшего дня для пользователя (по разным параметрам)
-
-
 class User(Base):
 	"""
 	 Модель пользователя
