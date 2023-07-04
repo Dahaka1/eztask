@@ -10,7 +10,8 @@
 - Unicorn (debug mode) / gunicorn server.
 
 # TODO
-- Some simple, minimalistic, light visual interpretation (e.g. Telegram Bot or mobile app).
+- Some simple, minimalistic, light visual interpretation (e.g. Telegram Bot or mobile app);
+- It may be necessary to change the database polling system to Celery tasks.
 
 # ABOUT
 The project realized some simple ideas. For starting work with it, user should, first of all, register and login (by getting and sending JWT-token).
@@ -42,7 +43,8 @@ Then:
 
 # **RUS**
 # TODO
-- Простая, минималистичная, легкая визуальная интерпретация (например, Telegram-бот или мобильное приложение).
+- Простая, минималистичная, легкая визуальная интерпретация (например, Telegram-бот или мобильное приложение);
+- Возможно, изменить создание опросов в БД с отслеживанием их выполнения на простую очередь Celery.
 
 # ABOUT
 В проекте реализовано несколько простых идей. Чтобы начать работу с ним, пользователь должен, прежде всего, зарегистрироваться и войти в систему (получив и отправив JWT-токен).
